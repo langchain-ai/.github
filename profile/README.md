@@ -37,12 +37,12 @@ Python Extensions:
 Live Demos:
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) - LangChain-powered chatbot focused on question answering over the LangChain documentation (Python)
 - [`ChatLangChain JS`](https://github.com/langchain-ai/chat-langchainjs) - ChatLangChain in JavaScript
-- [`WebLangChain](https://github.com/langchain-ai/weblangchain) - LangChain-powered web research chatbot (Python)
+- [`WebLangChain`](https://github.com/langchain-ai/weblangchain) - LangChain-powered web research chatbot (Python)
 
 ## Learn more
 
 | Section | Description |
 |-|-|
 | [Company Website](https://langchain.com) | LangChain product and company info |
-| [Python Documentation](https://python.langchain.com/docs/get_started/quickstart) | Get started with the python library |
+| [Python Documentation](https://python.langchain.com/docs/get_started/quickstart) | Get started with the Python library |
 | [JavaScript Documentation](https://js.langchain.com/docs/get_started/quickstart) | Get started with the JavaScript library |
