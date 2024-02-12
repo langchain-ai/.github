@@ -1,6 +1,6 @@
-<h3 align="center" style="font-size:40pt;">
+<h1 align="center" style="font-size:40pt;">
   🦜🔗 LangChain
-</h3>
+</h1>
 
 <div>
   <p align="center">
