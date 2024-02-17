@@ -1,5 +1,13 @@
-![LangChain logo](./logo-light.svg#gh-dark-mode-only)
-![LangChain logo](./logo-dark.svg#gh-light-mode-only)
+<h3 align="center">
+  <img
+    src="./logo-light.svg#gh-dark-mode-only"
+    height="200"
+  />
+  <img
+    src="./logo-dark.svg#gh-light-mode-only"
+    height="200"
+  />
+</h3>
 
 <div>
   <p align="center">
