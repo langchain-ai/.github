@@ -1,6 +1,13 @@
-<h1 align="center" style="font-size:40pt;">
-  🦜🔗 LangChain
-</h1>
+<h3 align="center">
+  <img
+    src="./logo-light.svg#gh-dark-mode-only"
+    height="110"
+  />
+  <img
+    src="./logo-dark.svg#gh-light-mode-only"
+    height="110"
+  />
+</h3>
 
 <div>
   <p align="center">
