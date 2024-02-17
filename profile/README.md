@@ -1,7 +1,5 @@
-<h3 align="center">
 ![LangChain logo](./logo-light.svg#gh-dark-mode-only)
 ![LangChain logo](./logo-dark.svg#gh-light-mode-only)
-</h3>
 
 <div>
   <p align="center">
