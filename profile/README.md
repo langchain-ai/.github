@@ -1,10 +1,10 @@
 <h3 align="center">
   <img
-    src="./logo-light.svg#gh-dark-mode-only"
+    src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only"
     height="110"
   />
   <img
-    src="./logo-dark.svg#gh-light-mode-only"
+    src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only"
     height="110"
   />
 </h3>
