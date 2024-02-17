@@ -1,11 +1,11 @@
 <h3 align="center">
   <img
     src="./logo-light.svg#gh-dark-mode-only"
-    height="150"
+    height="110"
   />
   <img
     src="./logo-dark.svg#gh-light-mode-only"
-    height="150"
+    height="110"
   />
 </h3>
 
