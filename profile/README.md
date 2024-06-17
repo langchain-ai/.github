@@ -34,7 +34,7 @@
 The LangChain Libraries:
 
 - [`LangChain`](https://github.com/langchain-ai/langchain) (Python)
-- [`LangChain JS`](https://github.com/langchain-ai/langchainjs) (JavaScript/TypeScript)
+- [`LangChain.js`](https://github.com/langchain-ai/langchainjs) (JavaScript/TypeScript)
 
 Our Products:
 - [`LangSmith`](https://docs.smith.langchain.com) - the platform for building production-grade LLM applications
@@ -43,11 +43,11 @@ Extensions:
 - [`LangServe`](https://github.com/langchain-ai/langserve) - deploy LangChain runnables and chains as a REST API (Python)
 - [`OpenGPTs`](https://github.com/langchain-ai/opengpts) - Open-source effort to create a similar experience to OpenAI's GPTs and Assistants API (Python)
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) - build language agents as graphs (Python)
-- [`LangGraph JS`](https://github.com/langchain-ai/langgraphjs) - LangGraph in JavaScript (JavaScript/TypeScript)
+- [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) - LangGraph in JavaScript (JavaScript/TypeScript)
 
 Live Demos:
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) - LangChain-powered chatbot focused on question answering over the LangChain documentation (Python)
-- [`ChatLangChain JS`](https://github.com/langchain-ai/chat-langchainjs) - ChatLangChain in JavaScript (JavaScript/TypeScript)
+- [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - ChatLangChain in JavaScript (JavaScript/TypeScript)
 - [`WebLangChain`](https://github.com/langchain-ai/weblangchain) - LangChain-powered web research chatbot (Python)
 
 ## Learn more
@@ -55,5 +55,5 @@ Live Demos:
 | Section | Description |
 |-|-|
 | [Company Website](https://langchain.com) | LangChain product and company info |
-| [Python Documentation](https://python.langchain.com/docs/get_started/quickstart) | Get started with the Python library |
-| [JavaScript Documentation](https://js.langchain.com/docs/get_started/quickstart) | Get started with the JavaScript library |
+| [Python Documentation](https://python.langchain.com/) | Get started with the Python library |
+| [JavaScript Documentation](https://js.langchain.com/) | Get started with the JavaScript library |
