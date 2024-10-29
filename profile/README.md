@@ -46,6 +46,7 @@ Live demos:
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) - LangChain-powered chatbot focused on question answering over the LangChain documentation (Python)
 - [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - ChatLangChain in JavaScript (JavaScript/TypeScript)
 - [`WebLangChain`](https://github.com/langchain-ai/weblangchain) - LangChain-powered web research chatbot (Python)
+- [`Open Canvas`](https://github.com/langchain-ai/open-canvas) - Document & chat based UX for writing code or markdown. (TypeScript) (Inspired by OpenAI's "Canvas")
 
 ## Learn more
 
