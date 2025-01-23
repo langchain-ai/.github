@@ -25,33 +25,29 @@
 </div>
 
 <h3 align="center">
-  <p>Build context-aware, reasoning applications with LangChain’s flexible abstractions and AI-first toolkit.</p>
+  <p>Build context-aware, reasoning applications with LangChain’s flexible abstractions and AI-first toolkits.</p>
 </h3>
 
-Main OSS libraries:
-
-- [`LangChain`](https://github.com/langchain-ai/langchain) (Python)
-- [`LangChain.js`](https://github.com/langchain-ai/langchainjs) (JavaScript/TypeScript)
-- [`LangGraph`](https://github.com/langchain-ai/langgraph) - build language agents as graphs (Python)
-- [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) - LangGraph in JavaScript (JavaScript/TypeScript)
+Core OSS libraries:
+- [`LangChain`](https://github.com/langchain-ai/langchain) and [`LangChain.js`](https://github.com/langchain-ai/langchainjs) - reusable components and integrations for building LLM applications
+- [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) - build LLM agents as graphs
 
 Products:
-- [`LangSmith`](https://docs.smith.langchain.com) - the platform for building production-grade LLM applications
+- [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications
+- [`LangGraph Platform`]() - infrastructure for deploying LangGraph agents
 
-OSS extensions:
-- [`LangServe`](https://github.com/langchain-ai/langserve) - deploy LangChain runnables and chains as a REST API (Python)
-- [`OpenGPTs`](https://github.com/langchain-ai/opengpts) - Open-source effort to create a similar experience to OpenAI's GPTs and Assistants API (Python)
-
-Live demos:
-- [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) - LangChain-powered chatbot focused on question answering over the LangChain documentation (Python)
-- [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - ChatLangChain in JavaScript (JavaScript/TypeScript)
-- [`WebLangChain`](https://github.com/langchain-ai/weblangchain) - LangChain-powered web research chatbot (Python)
-- [`Open Canvas`](https://github.com/langchain-ai/open-canvas) - Document & chat based UX for writing code or markdown. (TypeScript) (Inspired by OpenAI's "Canvas")
+OSS extensions and apps:
+- [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) and [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - chatbot for answering questions about LangChain's open source libraries
+- [`Open Canvas`](https://github.com/langchain-ai/open-canvas) - document & chat-based UX for writing code or markdown. Inspired by OpenAI's Canvas (TypeScript)
+- [`OpenGPTs`](https://github.com/langchain-ai/opengpts) - open source version of OpenAI's GPTs API (Python)
+- [`Email assistant`](https://github.com/langchain-ai/executive-ai-assistant) - AI assistant that helps you maintain your emails (Python)
+- [`LangChain + Next.js template`](https://github.com/langchain-ai/langchain-nextjs-template) - template LangChain.js + Next.js application 
+- [`Social media agent`](https://github.com/langchain-ai/social-media-agent) - agent for sourcing, curating, and scheduling social media posts with human-in-the-loop (TypeScript)
 
 ## Learn more
 
-| Section | Description |
-|-|-|
-| [Company Website](https://langchain.com) | LangChain product and company info |
-| [Python Documentation](https://python.langchain.com/) | Get started with the Python library |
-| [JavaScript Documentation](https://js.langchain.com/) | Get started with the JavaScript library |
+- [Company website](https://www.langchain.com/)
+- [LangChain Academy](https://academy.langchain.com/): Comprehensive, free courses on LangChain libraries and products, made by the LangChain team
+- LangChain docs: [Python](https://python.langchain.com/) and [TypeScript](https://js.langchain.com/)
+- LangGraph docs: [Python](https://langchain-ai.github.io/langgraph/) and [TypeScript](https://langchain-ai.github.io/langgraphjs/)
+- [LangSmith docs](https://docs.smith.langchain.com/)
