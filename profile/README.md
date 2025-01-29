@@ -43,7 +43,7 @@ OSS extensions and apps:
 - [`Email assistant`](https://github.com/langchain-ai/executive-ai-assistant) - AI assistant that helps you maintain your emails (Python)
 - [`LangChain + Next.js template`](https://github.com/langchain-ai/langchain-nextjs-template) - template LangChain.js + Next.js application 
 - [`Social media agent`](https://github.com/langchain-ai/social-media-agent) - agent for sourcing, curating, and scheduling social media posts with human-in-the-loop (TypeScript)
-- [`Agent Protocol`](https://github.com/langchain-ai/agent-protocol) - Agent Protocol is our attempt at codifying the framework-agnostic APIs that are needed to serve LLM agents in production.
+- [`Agent Protocol`](https://github.com/langchain-ai/agent-protocol) - Agent Protocol is our attempt at codifying the framework-agnostic APIs that are needed to serve LLM agents in production
 
 ## Learn more
 
