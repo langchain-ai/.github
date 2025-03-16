@@ -28,15 +28,15 @@
   <p>Build context-aware, reasoning applications with LangChain’s flexible abstractions and AI-first toolkits.</p>
 </h3>
 
-Core OSS libraries:
+#### Core OSS libraries
 - [`LangChain`](https://github.com/langchain-ai/langchain) and [`LangChain.js`](https://github.com/langchain-ai/langchainjs) - reusable components and integrations for building LLM applications
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) - build LLM agents as graphs
 
-Products:
+#### Products
 - [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications
 - [`LangGraph Platform`]() - infrastructure for deploying LangGraph agents
 
-OSS extensions and apps:
+#### OSS extensions and apps
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) and [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - chatbot for answering questions about LangChain's open source libraries
 - [`Open Canvas`](https://github.com/langchain-ai/open-canvas) - document & chat-based UX for writing code or markdown. Inspired by OpenAI's Canvas (TypeScript)
 - [`OpenGPTs`](https://github.com/langchain-ai/opengpts) - open source version of OpenAI's GPTs API (Python)
