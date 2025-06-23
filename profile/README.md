@@ -34,7 +34,7 @@ Core OSS libraries:
 
 Products:
 - [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications
-- [`LangGraph Platform`](https://www.langchain.com/langgraph-platform) - infrastructure for deploying LangGraph agents
+- [`LangGraph Platform`](https://langchain-ai.github.io/langgraph/concepts/langgraph_platform/) - infrastructure for deploying LangGraph agents
 
 OSS extensions and apps:
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) and [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - chatbot for answering questions about LangChain's open source libraries
