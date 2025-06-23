@@ -34,7 +34,7 @@ Core OSS libraries:
 
 Products:
 - [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications
-- [`LangGraph Platform`]() - infrastructure for deploying LangGraph agents
+- [`LangGraph Platform`](https://www.langchain.com/langgraph-platform) - infrastructure for deploying LangGraph agents
 
 OSS extensions and apps:
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) and [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - chatbot for answering questions about LangChain's open source libraries
@@ -48,7 +48,7 @@ OSS extensions and apps:
 ## Learn more
 
 - [Company website](https://www.langchain.com/)
-- [LangChain Academy](https://academy.langchain.com/): Comprehensive, free courses on LangChain libraries and products, made by the LangChain team
-- LangChain docs: [Python](https://python.langchain.com/) and [TypeScript](https://js.langchain.com/)
-- LangGraph docs: [Python](https://langchain-ai.github.io/langgraph/) and [TypeScript](https://langchain-ai.github.io/langgraphjs/)
+- [LangChain Academy](https://academy.langchain.com/) - comprehensive, free courses on LangChain libraries and products, made by the LangChain team
+- LangChain docs - [Python](https://python.langchain.com/) and [TypeScript](https://js.langchain.com/)
+- LangGraph docs - [Python](https://langchain-ai.github.io/langgraph/) and [TypeScript](https://langchain-ai.github.io/langgraphjs/)
 - [LangSmith docs](https://docs.smith.langchain.com/)
