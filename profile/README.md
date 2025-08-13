@@ -25,7 +25,7 @@
 </div>
 
 <h3 align="center">
-  <p>Build context-aware, reasoning applications with LangChain’s flexible abstractions and AI-first toolkits.</p>
+  <p>Build context-aware reasoning applications with LangChain’s flexible abstractions and AI-first toolkits.</p>
 </h3>
 
 Core OSS libraries:
@@ -33,7 +33,7 @@ Core OSS libraries:
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) - build LLM agents as graphs
 
 Products:
-- [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications
+- [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications [(SDK)](https://github.com/langchain-ai/langsmith-sdk)
 - [`LangGraph Platform`](https://langchain-ai.github.io/langgraph/concepts/langgraph_platform/) - infrastructure for deploying LangGraph agents
 
 OSS extensions and apps:
@@ -43,12 +43,14 @@ OSS extensions and apps:
 - [`Email assistant`](https://github.com/langchain-ai/executive-ai-assistant) - AI assistant that helps you maintain your emails (Python)
 - [`LangChain + Next.js template`](https://github.com/langchain-ai/langchain-nextjs-template) - template LangChain.js + Next.js application 
 - [`Social media agent`](https://github.com/langchain-ai/social-media-agent) - agent for sourcing, curating, and scheduling social media posts with human-in-the-loop (TypeScript)
-- [`Agent Protocol`](https://github.com/langchain-ai/agent-protocol) - Agent Protocol is our attempt at codifying the framework-agnostic APIs that are needed to serve LLM agents in production
+- [`Agent Protocol`](https://github.com/langchain-ai/agent-protocol) - our attempt at codifying the framework-agnostic APIs that are needed to serve LLM agents in production
 
 ## Learn more
 
+- [Community forum](https://forum.langchain.com/)
 - [Company website](https://www.langchain.com/)
 - [LangChain Academy](https://academy.langchain.com/) - comprehensive, free courses on LangChain libraries and products, made by the LangChain team
 - LangChain docs - [Python](https://python.langchain.com/) and [TypeScript](https://js.langchain.com/)
 - LangGraph docs - [Python](https://langchain-ai.github.io/langgraph/) and [TypeScript](https://langchain-ai.github.io/langgraphjs/)
 - [LangSmith docs](https://docs.smith.langchain.com/)
+- [LangGraph Platform docs](https://docs.langchain.com/langgraph-platform)
