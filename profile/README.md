@@ -1,11 +1,11 @@
 <h3 align="center">
   <img
     src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only"
-    height="110"
+    height="80"
   />
   <img
     src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only"
-    height="110"
+    height="80"
   />
 </h3>
 
@@ -47,10 +47,6 @@ OSS extensions and apps:
 
 ## Learn more
 
+- [Documentation](https://docs.langchain.com/)
 - [Community forum](https://forum.langchain.com/)
-- [Company website](https://www.langchain.com/)
 - [LangChain Academy](https://academy.langchain.com/) - comprehensive, free courses on LangChain libraries and products, made by the LangChain team
-- LangChain docs - [Python](https://python.langchain.com/) and [TypeScript](https://js.langchain.com/)
-- LangGraph docs - [Python](https://langchain-ai.github.io/langgraph/) and [TypeScript](https://langchain-ai.github.io/langgraphjs/)
-- [LangSmith docs](https://docs.smith.langchain.com/)
-- [LangGraph Platform docs](https://docs.langchain.com/langgraph-platform)
