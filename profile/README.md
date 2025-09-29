@@ -47,6 +47,6 @@ OSS extensions and apps:
 
 ## Learn more
 
-- [Documentation](https://docs.langchain.com/)
+- [Documentation](https://docs.langchain.com/) [(source)](https://github.com/langchain-ai/docs)
 - [Community forum](https://forum.langchain.com/)
 - [LangChain Academy](https://academy.langchain.com/) - comprehensive, free courses on LangChain libraries and products, made by the LangChain team
