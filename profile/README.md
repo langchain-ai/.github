@@ -33,7 +33,7 @@ Core OSS libraries:
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) - build LLM agents as graphs
 
 Commercial Platform:
-- [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications [(SDK)](https://github.com/langchain-ai/langsmith-sdk)
+- [`LangSmith`](https://docs.smith.langchain.com) - platform for building and monitoring production-grade LLM applications
 
 OSS extensions and apps:
 - [`ChatLangChain`](https://github.com/langchain-ai/chat-langchain) and [`ChatLangChain.js`](https://github.com/langchain-ai/chat-langchainjs) - chatbot for answering questions about LangChain's open source libraries
