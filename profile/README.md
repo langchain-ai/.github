@@ -1,26 +1,19 @@
-<h3 align="center">
-  <img
-    src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only"
-    height="80"
-  />
-  <img
-    src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only"
-    height="80"
-  />
-</h3>
+<div align="center">
+  <a href="https://www.langchain.com/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only">
+      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="80%">
+    </picture>
+  </a>
+</div>
 
 <div>
   <p align="center">
     <a
-    href="https://twitter.com/langchainai">
-        <img src="https://img.shields.io/badge/X/Twitter-000000?style=for-the-badge&logo=x&logoColor=white&logoSize=auto" />
-    </a>
-    <a href="https://www.linkedin.com/company/langchain/">
-        <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto" />
-    </a>
-    <a href="https://www.youtube.com/@LangChain">
-        <img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white&logoSize=auto" />
-    </a>
+    href="https://twitter.com/langchainai"><img src="https://img.shields.io/badge/X/Twitter-000000?style=for-the-badge&logo=x&logoColor=white&logoSize=auto" /></a>
+    <a href="https://www.linkedin.com/company/langchain/"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto" /></a>
+    <a href="https://www.youtube.com/@LangChain"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white&logoSize=auto" /></a>
   </p>
 </div>
 
