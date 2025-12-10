@@ -27,7 +27,7 @@ Core OSS libraries:
 - [`DeepAgents`](https://github.com/langchain-ai/deepagents) and [`DeepAgents.js`](https://github.com/langchain-ai/deepagentsjs) – agents that can plan, use subagents, and leverage file systems for complex tasks
 
 Commercial Platform:
-- [`LangSmith`](https://docs.smith.langchain.com) – platform for building and monitoring production-grade LLM applications
+- [`LangSmith`](https://docs.langchain.com/langsmith/home) – platform for building and monitoring production-grade LLM applications
 
 OSS extensions and apps:
 - [`Open SWE`](https://github.com/langchain-ai/open-swe) – open source asynchronous coding agent
