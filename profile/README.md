@@ -44,3 +44,6 @@ OSS extensions and apps:
 - [**Documentation**](https://docs.langchain.com/) – unified docs for LangChain projects and services [(source)](https://github.com/langchain-ai/docs)
 - [Community forum](https://forum.langchain.com/) – discuss, get help, and talk shop
 - [LangChain Academy](https://academy.langchain.com/) – comprehensive, free courses on LangChain libraries and products, made by the LangChain team
+- [**API Reference**](https://reference.langchain.com/python) – detailed reference on navigating base packages and integrations for LangChain
+- [**Contributing Guide**](https://docs.langchain.com/oss/python/contributing/overview) – learn how to contribute to LangChain projects and find good first issues
+- [**Code of Conduct**](https://github.com/langchain-ai/langchain/?tab=coc-ov-file) – our community guidelines and standards for participation
