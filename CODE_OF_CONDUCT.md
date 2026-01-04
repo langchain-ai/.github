@@ -24,6 +24,8 @@ community include:
   and learning from the experience
 * Focusing on what is best not just for us as individuals, but for the overall
   community
+* Proactively offering help to new contributors
+* Keeping discussions focused on ideas and solutions rather than personal attributes
 
 Examples of unacceptable behavior include:
 
@@ -35,6 +37,7 @@ Examples of unacceptable behavior include:
   without their explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
+* Deliberately undermining or dismissing others' contributions
 
 ## Enforcement Responsibilities
 
