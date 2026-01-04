@@ -35,9 +35,9 @@ Examples of unacceptable behavior include:
 * Public or private harassment
 * Publishing others' private information, such as a physical or email address,
   without their explicit permission
+* Deliberately undermining or dismissing others' contributions
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
-* Deliberately undermining or dismissing others' contributions
 
 ## Enforcement Responsibilities
 
