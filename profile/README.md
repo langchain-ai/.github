@@ -11,7 +11,7 @@
 <div>
   <p align="center">
     <a
-    href="https://twitter.com/langchainai"><img src="https://img.shields.io/badge/X/Twitter-000000?style=for-the-badge&logo=x&logoColor=white&logoSize=auto" /></a>
+    href="https://x.com/langchain"><img src="https://img.shields.io/badge/X/Twitter-000000?style=for-the-badge&logo=x&logoColor=white&logoSize=auto" /></a>
     <a href="https://www.linkedin.com/company/langchain/"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto" /></a>
     <a href="https://www.youtube.com/@LangChain"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white&logoSize=auto" /></a>
   </p>
