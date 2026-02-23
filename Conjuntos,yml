@@ -1,0 +1,36 @@
+Conjuntos de consultas codeQL
+Puedes elegir entre diferentes conjuntos de consultas de CodeQL integradas para usarlas en la configuración de code scanning de CodeQL.
+
+¿Quién puede utilizar esta característica?
+CodeQL está disponible para los siguientes tipos de repositorios:
+
+Repositorios públicos en GitHub.com, consulte Términos y condiciones de CodeQL de GitHub.
+Repositorios propiedad de la organización en GitHub Team con GitHub Code Security habilitado
+En este artículo
+¿Qué son los conjuntos de consultas?
+Los conjuntos de consultas permiten pasar varias consultas a CodeQL sin tener que especificar la ruta de acceso en cada archivo de consulta individualmente. Proporcionan una manera de seleccionar consultas en función de su nombre de archivo, propiedades de metadatos o ubicación en el disco o en un paquete CodeQL .
+
+Debe usar conjuntos de consultas para consultas que quiera usar con frecuencia en los análisis de CodeQL. Puede usar un conjunto de consultas integrado disponible a través de GitHub, o puede crear su propio conjunto de consultas.
+
+Conjuntos de consultas de CodeQL integradas
+Los conjuntos de consultas de CodeQL integradas, default y security-extended, se crean y mantienen mediante GitHub. Ambos conjuntos de consultas están disponibles con la configuración predeterminada para cada lenguaje compatible con CodeQL.
+
+Los propietarios de la organización y los administradores de seguridad pueden recomendar un conjunto de consultas para su uso con la configuración predeterminada en toda su organización. Para más información, consulta Establecimiento de la configuración predeterminada para el examen de código a gran escala.
+
+Para obtener una lista completa de las consultas incluidas en cada conjunto de consultas para cada lenguaje, consulte Consultas para el análisis de CodeQL.
+
+Conjunto de consultas default
+El conjunto de consultas default es el grupo de consultas que se ejecutan de forma predeterminada en code scanning de CodeQL en GitHub.
+Las consultas del conjunto de consultas default son muy precisas y devuelven pocos resultados de code scanning falsos positivos. En relación con el conjunto de consultas security-extended, el conjunto default devuelve menos resultados de code scanning con confianza baja.
+Este conjunto de consultas está disponible para usarlo con la configuración predeterminada de code scanning.
+Conjunto de consultas security-extended
+El conjunto de consultas security-extended consta de todas las consultas del conjunto de consultas default, más otras consultas con una precisión y gravedad ligeramente inferiores.
+En relación con el conjunto de consultas default, el conjunto security-extended puede devolver un mayor número de resultados de code scanning falsos positivos.
+Este conjunto de consultas está disponible para su uso con la configuración predeterminada para code scanning y se conoce como el conjunto de consultas "Extendido" en GitHub.
+Conjuntos de consultas personalizados
+Para usar un conjunto de consultas personalizado, debes establecer una configuración avanzada para el code scanning de CodeQL. Para más información, consulta Establecimiento de la configuración avanzada para el examen del código.
+
+Las definiciones del conjunto de consultas se almacenan en archivos YAML con la extensión .qls. Una definición de conjuntos es una secuencia de instrucciones, donde cada instrucción es una asignación de YAML que (normalmente) tiene una sola clave. Las instrucciones se ejecutan en el orden en que aparecen en la definición del conjunto de consultas. Una vez ejecutadas todas las instrucciones de la definición del conjunto, el resultado es un conjunto de consultas seleccionadas. Para más información, consulta Creación de conjuntos de consultas de CodeQL.
+
+Lectura adicional
+        [AUTOTITLE](/code-security/codeql-cli/using-the-advanced-functionality-of-the-codeql-cli/creating-codeql-query-suites)
