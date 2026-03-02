@@ -21,10 +21,6 @@
   </p>
 </div>
 
-<h3 align="center">
-  <p>Build context-aware reasoning applications with LangChain’s flexible abstractions and AI-first toolkits.</p>
-</h3>
-
 Core OSS libraries:
 - [`LangChain`](https://github.com/langchain-ai/langchain) and [`LangChain.js`](https://github.com/langchain-ai/langchainjs) – reusable components and integrations for building LLM applications
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) – build LLM agents as graphs
