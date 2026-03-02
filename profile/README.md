@@ -3,7 +3,7 @@
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only">
-      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="70%">
+      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="50%">
     </picture>
   </a>
 </div>
