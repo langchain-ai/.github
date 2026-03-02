@@ -3,9 +3,13 @@
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only">
-      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="80%">
+      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="70%">
     </picture>
   </a>
+</div>
+
+<div align="center">
+  <h3>The agent engineering platform.</h3>
 </div>
 
 <div>
