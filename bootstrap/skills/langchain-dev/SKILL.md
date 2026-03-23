@@ -1,24 +1,36 @@
 ---
 name: langchain-dev
-version: 1.0.0
+version: 1.1.0
 description: >
-  Revolutionärer LangChain + LangGraph AI Assistant mit persistentem Gedächtnis,
-  Tool-Nutzung und tiefem Verständnis des LangChain-Ökosystems. Läuft in
-  OpenClaw als lokaler Skill.
+  LangChain + LangGraph AI Assistant mit persistentem Gedächtnis,
+  Tool-Nutzung und tiefem Verständnis des LangChain-Ökosystems.
+  Zwei Entrypoints: agent.py (voll, LangGraph) + agent_mini.py (a-Shell, pure Python).
 author: langchain-ai
 license: MIT
 requires:
-  runtime: python3
+  runtime: python3>=3.11
   node: ">=22.16.0"
+  # a-Shell/iOS: NUR anthropic nötig (kein LangChain — pydantic-core braucht Rust)
+  packages_full:   # macOS/Linux
+    - anthropic>=0.40.0
+    - langgraph>=0.2.0
+    - langchain-anthropic>=0.3.0
+    - langchain-core>=0.3.0
+  packages_mini:   # a-Shell (iOS) / Termux (Android)
+    - anthropic>=0.40.0  # pure Python, kein Rust nötig
 env:
   required:
     - ANTHROPIC_API_KEY
   optional:
     - LANGSMITH_API_KEY
-    - LANGSMITH_PROJECT
-    - LANGCHAIN_TRACING_V2
-entrypoint: agent.py
+entrypoint_full: agent.py       # macOS/Linux (LangGraph)
+entrypoint_mini: agent_mini.py  # a-Shell/iOS (pure anthropic SDK)
 ---
+
+> **a-Shell / iOS:** Verwende `agent_mini.py` — LangChain benötigt
+> `pydantic-core` (Rust), das auf iOS nicht kompiliert werden kann.
+> `agent_mini.py` ist vollständig kompatibel: gleiche Tool-API, gleicher
+> `handle_message()` Entry-Point, SQLite-Memory.
 
 # langchain-dev Skill
 
