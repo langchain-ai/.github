@@ -174,9 +174,18 @@ def build_graph(memory: ConversationMemory) -> object:
         system = SYSTEM_PROMPT
 
         # Inject relevant memory context
-        ctx = memory.get_context(state["thread_id"], limit=5)
+        # ACMM: Semantic search wenn query bekannt (besser als chronologisch)
+        last_human = next(
+            (m.content for m in reversed(state["messages"]) if isinstance(m, HumanMessage)),
+            ""
+        )
+        ctx = memory.get_context(
+            state["thread_id"],
+            limit=5,
+            query=str(last_human)[:500],  # Semantische Suche nach aktuellem Query
+        )
         if ctx:
-            system += f"\n\n## Relevant Memory\n{ctx}"
+            system += f"\n\n{ctx}"
 
         # Adapt style per channel
         channel = state.get("channel", "webchat")
