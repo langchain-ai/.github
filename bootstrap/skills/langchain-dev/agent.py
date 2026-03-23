@@ -68,9 +68,23 @@ You run as an OpenClaw skill with access to tools, persistent memory, and deep L
 def run_python(code: str) -> str:
     """Execute Python code in an isolated subprocess and return stdout/stderr.
     Use for calculations, data processing, testing LangChain snippets."""
-    # Safety: block obviously dangerous patterns
-    blocked = ["import os", "import subprocess", "import sys", "__import__",
-               "open(", "exec(", "eval(", "shutil", "pathlib"]
+    # Safety: block shell-escape and remote-execution patterns only.
+    # Intentionally NOT blocking: import os, open(), pathlib — legitimate in coding context.
+    blocked = [
+        "__import__",                # Dynamic import bypass
+        "importlib.import_module",   # Same
+        "exec(",                     # Arbitrary code execution
+        "eval(",                     # Same
+        "compile(",                  # Code compilation
+        "ctypes",                    # Native code injection
+        "subprocess",                # Shell escape
+        "import shlex",              # Shell quoting (usually subprocess prep)
+        "socket",                    # Network access from sandbox
+        "urllib.request",            # HTTP from sandbox
+        "requests.get", "requests.post",  # HTTP from sandbox
+        "os.system(", "os.popen(",   # Shell via os (os.path etc. allowed)
+        "os.execv", "os.execl", "os.fork",  # Process replacement
+    ]
     code_lower = code.lower()
     for pattern in blocked:
         if pattern in code_lower:
@@ -175,6 +189,15 @@ def _load_ashell_tools() -> list:
     try:
         from url_orchestrator import as_langchain_tools  # noqa: PLC0415
         extra.extend(as_langchain_tools())
+    except Exception:
+        pass
+
+    # Sensor Briefing: Ambient-Kontext aus iOS-Signalen
+    try:
+        from sensor_briefing import as_langchain_tool as sb_tool  # noqa: PLC0415
+        t = sb_tool()
+        if t:
+            extra.append(t)
     except Exception:
         pass
 

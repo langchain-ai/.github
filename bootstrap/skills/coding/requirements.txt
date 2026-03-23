@@ -1,0 +1,9 @@
+# coding/ skill — Python dependencies
+# Für: refactor_verifier.py, invariant_miner.py (Fuzzing + Runtime-Tracing)
+hypothesis>=6.100.0
+
+# Für: causal_diff.py, smell_memory.py, revert_advisor.py (AST + Git)
+# (keine extra deps — stdlib: ast, subprocess, re, sqlite3)
+
+# Anthropic Haiku für Claude-Erklärungen (bereits in langchain-dev/requirements.txt)
+# anthropic>=0.40.0  # von langchain-dev übernommen wenn im selben venv

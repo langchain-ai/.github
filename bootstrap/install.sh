@@ -159,43 +159,87 @@ fi
 # ── Install Python dependencies ───────────────────────────────────────────────
 step "Installing Python AI stack"
 
-REQUIREMENTS="${SKILL_DIR}/requirements.txt"
-cat > "$REQUIREMENTS" << 'REQS'
-anthropic>=0.40.0
-langgraph>=0.2.0
-langchain-anthropic>=0.3.0
-langchain-community>=0.3.0
-langchain-core>=0.3.0
-sqlalchemy>=2.0.0
-aiosqlite>=0.20.0
-httpx>=0.27.0
-REQS
-
+# Core: LangChain + LangGraph + Anthropic
 log "Installing: anthropic, langgraph, langchain..."
-"$PYTHON_CMD" -m pip install --quiet --upgrade -r "$REQUIREMENTS" \
+"$PYTHON_CMD" -m pip install --quiet --upgrade \
+    "anthropic>=0.40.0" \
+    "langgraph>=0.2.0" \
+    "langchain-anthropic>=0.3.0" \
+    "langchain-community>=0.3.0" \
+    "langchain-core>=0.3.0" \
+    "sqlalchemy>=2.0.0" \
+    "aiosqlite>=0.20.0" \
+    "httpx>=0.27.0" \
     || err "pip install failed — check network and try again"
 ok "Python AI stack installed"
 
-# ── Deploy LangChain-Dev Skill ────────────────────────────────────────────────
-step "Deploying langchain-dev OpenClaw skill"
+# coding/ skill extra: hypothesis for fuzzing-based refactor verification
+log "Installing coding skill extras: hypothesis..."
+"$PYTHON_CMD" -m pip install --quiet --upgrade "hypothesis>=6.100.0" \
+    && ok "hypothesis installed" \
+    || warn "hypothesis install failed — refactor_verifier will run in basic mode"
 
-# Copy skill files from repo (or download if piped install)
-SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd || echo "$INSTALL_DIR")"
-REPO_SKILL_DIR="${SCRIPT_DIR}/skills/langchain-dev"
-
-if [ -d "$REPO_SKILL_DIR" ]; then
-    cp -r "$REPO_SKILL_DIR/." "$SKILL_DIR/"
-    ok "Skill files copied from local repo"
+# memory-mesh optional: semantic embeddings (heavy, skip on low-memory devices)
+if [ "$ASHELL" = "false" ] && [ "$TERMUX" = "false" ]; then
+    log "Installing memory-mesh optional: sentence-transformers (may take a while)..."
+    "$PYTHON_CMD" -m pip install --quiet "sentence-transformers>=3.0.0" "numpy>=1.26.0" \
+        && ok "sentence-transformers installed — ACMM semantic search active" \
+        || warn "sentence-transformers skipped — ACMM will use keyword fallback"
 else
-    # Download skill files directly
-    BASE_URL="https://raw.githubusercontent.com/langchain-ai/.github/main/bootstrap/skills/langchain-dev"
-    log "Downloading skill files..."
-    for file in SKILL.md tools.py memory.py agent.py; do
-        curl -fsSL "${BASE_URL}/${file}" -o "${SKILL_DIR}/${file}" 2>/dev/null \
-            && ok "Downloaded $file" \
-            || warn "Could not download $file (will be created)"
-    done
+    log "Skipping sentence-transformers on mobile (too large) — ACMM uses keyword mode"
 fi
+
+# ── Deploy All Skills ─────────────────────────────────────────────────────────
+step "Deploying OpenClaw skills"
+
+# Detect if running from cloned repo or piped via curl
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd || echo "")"
+REPO_SKILLS_DIR="${SCRIPT_DIR}/skills"
+BASE_URL="https://raw.githubusercontent.com/langchain-ai/.github/main/bootstrap/skills"
+
+# Skills to deploy: name → install dir
+SKILLS="langchain-dev ashell coding memory-mesh"
+
+for skill in $SKILLS; do
+    TARGET_DIR="${INSTALL_DIR}/skills/${skill}"
+    mkdir -p "$TARGET_DIR"
+
+    if [ -d "${REPO_SKILLS_DIR}/${skill}" ]; then
+        # Running from repo clone — copy directly (excludes __pycache__)
+        rsync -a --exclude='__pycache__' --exclude='*.pyc' \
+            "${REPO_SKILLS_DIR}/${skill}/" "$TARGET_DIR/" 2>/dev/null \
+        || cp -r "${REPO_SKILLS_DIR}/${skill}/." "$TARGET_DIR/"
+        ok "Skill '${skill}' deployed from local repo"
+    else
+        # Piped install — download SKILL.md to check what files exist
+        log "Downloading skill '${skill}'..."
+        # Download known files per skill
+        case "$skill" in
+            langchain-dev)
+                files="SKILL.md agent.py memory.py requirements.txt"
+                ;;
+            coding)
+                files="SKILL.md causal_diff.py invariant_miner.py revert_advisor.py smell_memory.py refactor_verifier.py chat_modes.py requirements.txt"
+                ;;
+            ashell)
+                files="SKILL.md tts.py url_orchestrator.py icloud_handoff.py clipboard_daemon.py sensor_briefing.py"
+                ;;
+            memory-mesh)
+                files="SKILL.md embedder.py compressor.py scheduler.py requirements.txt"
+                ;;
+        esac
+        skill_ok=true
+        for file in $files; do
+            curl -fsSL "${BASE_URL}/${skill}/${file}" -o "${TARGET_DIR}/${file}" 2>/dev/null \
+                && ok "  ${skill}/${file}" \
+                || { warn "  Could not download ${skill}/${file}"; skill_ok=false; }
+        done
+        $skill_ok && ok "Skill '${skill}' downloaded" || warn "Skill '${skill}' partially downloaded"
+    fi
+done
+
+# Backwards-compat symlink: SKILL_DIR still points to langchain-dev
+SKILL_DIR="${INSTALL_DIR}/skills/langchain-dev"
 
 # ── Configure secrets ─────────────────────────────────────────────────────────
 step "Configuring API keys"
@@ -326,11 +370,21 @@ echo ""
 openclaw gateway &
 GATEWAY_PID=\$!
 
-# Wait for gateway to be ready
-sleep 2
+# Wait for gateway to be ready — health-check loop (max 15s)
+READY=false
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+    if openclaw doctor --quiet 2>/dev/null; then
+        READY=true
+        break
+    fi
+    sleep 1
+done
+if [ "\$READY" = "false" ]; then
+    echo "Warning: gateway health-check timed out — agent may start before gateway is ready"
+fi
 
 # Start agent with langchain-dev skill
-openclaw agent --skill "${SKILL_DIR}" &
+openclaw agent --skill "${INSTALL_DIR}/skills/langchain-dev" &
 AGENT_PID=\$!
 
 echo "System running. PIDs: gateway=\$GATEWAY_PID agent=\$AGENT_PID"
@@ -374,3 +428,5 @@ printf "${BOLD}Next steps:${RESET}\n"
 printf "  1. ${YELLOW}Reload shell:${RESET} source ${SHELL_PROFILE:-~/.profile}\n"
 printf "  2. ${YELLOW}Start system:${RESET} sh ${LAUNCH_SCRIPT}\n"
 printf "  3. ${YELLOW}Open WebChat:${RESET} http://127.0.0.1:18788\n\n"
+
+exit 0

@@ -386,6 +386,33 @@ class SensorBriefing:
         return text
 
 
+# ── LangChain Tool ────────────────────────────────────────────────────────────
+
+def as_langchain_tool():
+    """Registriert SensorBriefing als LangChain-Tool für agent.py."""
+    try:
+        from langchain_core.tools import tool
+
+        @tool
+        def get_ambient_briefing(use_tts: bool = False) -> str:
+            """Sammelt alle iOS-Kontext-Signale (Uhrzeit, Clipboard, Focus-Mode,
+            iCloud-Dateien, offene Tasks, ACMM-Memory) und erstellt ein
+            personalisiertes Ambient-Briefing. Nur auf a-Shell (iOS) vollständig
+            verfügbar; auf anderen Plattformen werden verfügbare Signale genutzt."""
+            briefing = SensorBriefing()
+            state = briefing.gather()
+            text = briefing.compile_with_haiku(state)
+            if use_tts:
+                briefing.deliver(text, use_tts=True)
+            # Kompaktes Format für Chat-Antwort
+            signals_note = f"({state.signals_count} Signalquellen)"
+            return f"{text}\n\n_{signals_note}_"
+
+        return get_ambient_briefing
+    except ImportError:
+        return None
+
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
