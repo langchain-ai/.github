@@ -181,7 +181,40 @@ def _load_ashell_tools() -> list:
     return extra
 
 
-TOOLS = [run_python, read_file, write_file, shell_safe] + _load_ashell_tools()
+def _load_coding_tools() -> list:
+    """
+    Lädt Coding-Intelligence-Tools (coding/ skill).
+    Graceful degradation wenn Skill nicht installiert.
+    """
+    extra = []
+    coding_dir = os.path.join(os.path.dirname(SKILL_DIR), "coding")
+    if not os.path.isdir(coding_dir):
+        return extra
+    if coding_dir not in sys.path:
+        sys.path.insert(0, coding_dir)
+
+    loaders = [
+        ("causal_diff",       "as_langchain_tool"),
+        ("invariant_miner",   "as_langchain_tool"),
+        ("revert_advisor",    "as_langchain_tool"),
+        ("smell_memory",      "as_langchain_tool"),
+        ("refactor_verifier", "as_langchain_tool"),
+    ]
+    for module_name, fn_name in loaders:
+        try:
+            mod = __import__(module_name)
+            tool_fn = getattr(mod, fn_name, None)
+            if callable(tool_fn):
+                t = tool_fn()
+                if t:
+                    extra.append(t)
+        except Exception:
+            pass
+
+    return extra
+
+
+TOOLS = [run_python, read_file, write_file, shell_safe] + _load_ashell_tools() + _load_coding_tools()
 
 
 # ── Agent State ───────────────────────────────────────────────────────────────
@@ -191,6 +224,43 @@ class AgentState(TypedDict):
     channel: str          # openclaw channel name (webchat, telegram, siri, ...)
     thread_id: str        # session/conversation ID
     thinking_level: str   # off | low | medium | high
+    chat_mode: str        # chat | coding | debugging | architecture | pair_programming | review
+
+
+# ── Chat Mode + Coding Tools ───────────────────────────────────────────────────
+
+def _get_state_machine(thread_id: str):
+    """Lädt ConversationStateMachine wenn coding/ Skill verfügbar."""
+    try:
+        coding_dir = os.path.join(os.path.dirname(SKILL_DIR), "coding")
+        if coding_dir not in sys.path:
+            sys.path.insert(0, coding_dir)
+        from chat_modes import ConversationStateMachine  # noqa: PLC0415
+        return ConversationStateMachine.for_thread(thread_id)
+    except Exception:
+        return None
+
+
+def _smell_check(message_text: str) -> str:
+    """Before-Hook: Code-Smell-Prüfung aus SmellMemory."""
+    try:
+        coding_dir = os.path.join(os.path.dirname(SKILL_DIR), "coding")
+        if coding_dir not in sys.path:
+            sys.path.insert(0, coding_dir)
+        from smell_memory import check_message_for_smells  # noqa: PLC0415
+        return check_message_for_smells(message_text)
+    except Exception:
+        return ""
+
+
+def _mode_system_prompt(base: str, mode_str: str, channel: str) -> str:
+    """Baut Modus-spezifischen System-Prompt."""
+    try:
+        from chat_modes import ChatMode, build_mode_system_prompt  # noqa: PLC0415
+        mode = ChatMode(mode_str) if mode_str else ChatMode.CHAT
+        return build_mode_system_prompt(base, mode, channel)
+    except Exception:
+        return base
 
 
 # ── Graph Nodes ───────────────────────────────────────────────────────────────
@@ -204,18 +274,28 @@ def build_graph(memory: ConversationMemory) -> object:
 
     def agent_node(state: AgentState):
         """Main reasoning node — calls Claude with tool binding."""
-        system = SYSTEM_PROMPT
-
-        # Inject relevant memory context
-        # ACMM: Semantic search wenn query bekannt (besser als chronologisch)
         last_human = next(
             (m.content for m in reversed(state["messages"]) if isinstance(m, HumanMessage)),
             ""
         )
+
+        # ① Chat-Modus-System-Prompt
+        system = _mode_system_prompt(
+            SYSTEM_PROMPT,
+            state.get("chat_mode", "chat"),
+            state.get("channel", "webchat"),
+        )
+
+        # ② Smell-Memory Before-Hook: warnt bei Anti-Pattern proaktiv
+        smell_warning = _smell_check(str(last_human))
+        if smell_warning:
+            system += f"\n\n{smell_warning}"
+
+        # ③ ACMM: Semantische Memory-Injektion
         ctx = memory.get_context(
             state["thread_id"],
             limit=5,
-            query=str(last_human)[:500],  # Semantische Suche nach aktuellem Query
+            query=str(last_human)[:500],
         )
         if ctx:
             system += f"\n\n{ctx}"
@@ -302,29 +382,45 @@ def handle_message(payload: dict) -> str:
         "text": str,
         "thread_id": str,
         "channel": str,
-        "thinking_level": str
+        "thinking_level": str,
+        "chat_mode": str  (optional, auto-detected if absent)
     }
     Returns: response string
     """
     memory = ConversationMemory(DB_PATH)
+    thread_id = payload.get("thread_id", "default")
+    text = payload.get("text", "")
+
+    # ① Chat-Modus-Autodetection via ConversationStateMachine
+    sm = _get_state_machine(thread_id)
+    if sm:
+        detected_mode, switched = sm.process_message(text)
+        chat_mode = detected_mode.value
+    else:
+        chat_mode = payload.get("chat_mode", "chat")
 
     with SqliteSaver.from_conn_string(DB_PATH) as checkpointer:
         graph = build_graph(memory).compile(checkpointer=checkpointer)
 
         state = {
-            "messages": [HumanMessage(content=payload["text"])],
+            "messages": [HumanMessage(content=text)],
             "channel": payload.get("channel", "webchat"),
-            "thread_id": payload.get("thread_id", "default"),
+            "thread_id": thread_id,
             "thinking_level": payload.get("thinking_level", "medium"),
+            "chat_mode": chat_mode,
         }
 
-        config = {"configurable": {"thread_id": payload.get("thread_id", "default")}}
+        config = {"configurable": {"thread_id": thread_id}}
         result = graph.invoke(state, config=config)
 
-        # Extract final AI message
+        # Mode-Indicator voranstellen wenn Modus gewechselt
+        mode_prefix = ""
+        if sm and switched:
+            mode_prefix = f"{sm.mode_indicator} *(Modus gewechselt)*\n\n"
+
         for msg in reversed(result["messages"]):
             if isinstance(msg, AIMessage) and msg.content:
-                return str(msg.content)
+                return mode_prefix + str(msg.content)
 
     return "I couldn't generate a response. Please try again."
 
