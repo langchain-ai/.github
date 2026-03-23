@@ -148,7 +148,40 @@ def shell_safe(command: str) -> str:
         return f"[ERROR] {e}"
 
 
-TOOLS = [run_python, read_file, write_file, shell_safe]
+# ── a-Shell Exclusive Tools (graceful degradation auf Nicht-iOS) ──────────────
+
+def _load_ashell_tools() -> list:
+    """
+    Lädt a-Shell-exklusive Tools wenn verfügbar.
+    Kein Fehler auf macOS/Linux — einfach leer.
+    """
+    extra = []
+    ashell_dir = os.path.join(os.path.dirname(SKILL_DIR), "ashell")
+    if not os.path.isdir(ashell_dir):
+        return extra
+    if ashell_dir not in sys.path:
+        sys.path.insert(0, ashell_dir)
+
+    # TTS: speak_aloud Tool
+    try:
+        from tts import as_langchain_tool  # noqa: PLC0415
+        tts_tool = as_langchain_tool()
+        if tts_tool:
+            extra.append(tts_tool)
+    except Exception:
+        pass
+
+    # URL-Orchestrator: Drafts, Things, Shortcuts
+    try:
+        from url_orchestrator import as_langchain_tools  # noqa: PLC0415
+        extra.extend(as_langchain_tools())
+    except Exception:
+        pass
+
+    return extra
+
+
+TOOLS = [run_python, read_file, write_file, shell_safe] + _load_ashell_tools()
 
 
 # ── Agent State ───────────────────────────────────────────────────────────────
@@ -219,9 +252,32 @@ def build_graph(memory: ConversationMemory) -> object:
                 memory.save_exchange(
                     thread_id=state["thread_id"],
                     human=last_human,
-                    assistant=str(last_ai)[:500],  # Trim for storage
+                    assistant=str(last_ai)[:500],
                 )
+
+        # iCloud Handoff — nach jeder Antwort State synchronisieren (a-Shell only)
+        _try_icloud_handoff(state)
         return {}
+
+    def _try_icloud_handoff(state: AgentState):
+        """Schreibt Session-State nach iCloud für Cross-Device-Handoff."""
+        ashell_dir = os.path.join(os.path.dirname(SKILL_DIR), "ashell")
+        if not os.path.isdir(ashell_dir):
+            return
+        try:
+            if ashell_dir not in sys.path:
+                sys.path.insert(0, ashell_dir)
+            from icloud_handoff import iCloudHandoff  # noqa: PLC0415
+            h = iCloudHandoff()
+            last_human = next(
+                (m.content for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), ""
+            )
+            h.save(
+                thread_id=state["thread_id"],
+                summary=str(last_human)[:200],
+            )
+        except Exception:
+            pass  # iCloud nicht verfügbar — kein Problem
 
     # Build the graph
     graph = StateGraph(AgentState)
