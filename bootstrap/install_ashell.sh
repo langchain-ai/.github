@@ -88,42 +88,153 @@ else
     warn "lg2 nicht gefunden — 'pkg install git' ausführen für git-Unterstützung"
 fi
 
-# ── Skill-Dateien downloaden oder aus Repo kopieren ───────────────────────────
-step "Skill-Dateien einrichten"
+# ── agent_mini.py direkt einbetten (kein Download nötig) ─────────────────────
+step "agent_mini.py erstellen (eingebettet)"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd || echo "")"
-REPO_SKILL="${SCRIPT_DIR}/skills/langchain-dev"
+AGENT_OUT="${SKILL_DIR}/agent_mini.py"
 
-if [ -d "$REPO_SKILL" ]; then
-    # Aus lokalem Repo kopieren
-    for f in agent_mini.py memory.py SKILL.md requirements.txt; do
-        [ -f "${REPO_SKILL}/${f}" ] && cp "${REPO_SKILL}/${f}" "${SKILL_DIR}/${f}" && ok "  $f"
-    done
-else
-    # Download via Python urllib (kein curl-URL-Problem)
-    "$PYTHON_CMD" - << 'PYDOWNLOAD'
-import urllib.request
-import os
+# Python schreibt den Agent direkt — kein Netzwerk, keine URL-Probleme
+"$PYTHON_CMD" - "$AGENT_OUT" << 'WRITE_AGENT'
+import sys, os, textwrap
 
-base = 'https://raw.githubusercontent.com'
-repo = '/langchain-ai/.github/main/bootstrap/skills/langchain-dev'
-files = ['agent_mini.py', 'memory.py', 'SKILL.md']
+dest = sys.argv[1]
+os.makedirs(os.path.dirname(dest), exist_ok=True)
 
-skill_dir = os.path.join(
-    os.path.expanduser('~'), 'Documents',
-    '.langchain-assistant', 'skills', 'langchain-dev'
-)
+code = textwrap.dedent('''
+    """agent_mini.py — a-Shell Native Agent (anthropic SDK only)"""
+    from __future__ import annotations
+    import json, os, sqlite3, subprocess, sys
+    from datetime import datetime
+    from pathlib import Path
 
-for f in files:
-    url = base + repo + '/' + f
-    dest = os.path.join(skill_dir, f)
-    try:
-        urllib.request.urlretrieve(url, dest)
-        print(f'  OK: {f}')
-    except Exception as e:
-        print(f'  WARN: {f} — {e}')
-PYDOWNLOAD
-fi
+    MODEL = "claude-sonnet-4-6"
+    MAX_TOKENS = 4096
+    MAX_ROUNDS = 8
+
+    _DOCS = Path(os.path.expanduser("~")) / "Documents"
+    _DATA = _DOCS / ".langchain-assistant" / "data"
+    _DATA.mkdir(parents=True, exist_ok=True)
+    DB_PATH = _DATA / "memory.db"
+
+    SYSTEM = """You are a helpful AI assistant with tool use.
+    Tools: run_python, read_file, write_file, shell_safe.
+    Be direct. Code-first for technical questions.""".strip()
+
+    TOOLS = [
+        {"name":"run_python","description":"Execute Python code. Returns stdout/stderr.",
+         "input_schema":{"type":"object","properties":{"code":{"type":"string"}},"required":["code"]}},
+        {"name":"read_file","description":"Read file from ~/Documents/",
+         "input_schema":{"type":"object","properties":{"path":{"type":"string"}},"required":["path"]}},
+        {"name":"write_file","description":"Write file to ~/Documents/",
+         "input_schema":{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"}},"required":["path","content"]}},
+        {"name":"shell_safe","description":"Run safe shell command (ls,pwd,git log,pip list)",
+         "input_schema":{"type":"object","properties":{"command":{"type":"string"}},"required":["command"]}},
+    ]
+
+    _BLOCKED = ["__import__","exec(","eval(","compile(","ctypes","os.system(","os.execv","socket"]
+    _SAFE    = ["ls","pwd","echo","cat","head","tail","git log","git status","pip list","pip show","lg2"]
+
+    def _run_python(code):
+        if any(p in code.lower() for p in _BLOCKED):
+            return "[BLOCKED] Unsafe pattern."
+        try:
+            r = subprocess.run([sys.executable,"-c",code],capture_output=True,text=True,timeout=15)
+            return (r.stdout+r.stderr).strip() or "(no output)"
+        except subprocess.TimeoutExpired: return "[TIMEOUT]"
+        except Exception as e: return f"[ERROR] {e}"
+
+    def _read_file(path):
+        p = _DOCS / path.lstrip("/")
+        try:
+            t = p.read_text(encoding="utf-8",errors="replace")
+            return t[:8000]+(f"\\n[truncated {len(t)}]" if len(t)>8000 else "")
+        except Exception as e: return f"[ERROR] {e}"
+
+    def _write_file(path, content):
+        p = _DOCS / path.lstrip("/")
+        p.parent.mkdir(parents=True,exist_ok=True)
+        try: p.write_text(content,encoding="utf-8"); return f"[OK] {p}"
+        except Exception as e: return f"[ERROR] {e}"
+
+    def _shell_safe(cmd):
+        if not any(cmd.strip().startswith(p) for p in _SAFE):
+            return f"[BLOCKED] Use: {', '.join(_SAFE)}"
+        try:
+            r = subprocess.run(cmd,shell=True,capture_output=True,text=True,timeout=10)
+            return (r.stdout+r.stderr).strip() or "(no output)"
+        except Exception as e: return f"[ERROR] {e}"
+
+    def run_tool(name, inp):
+        if name=="run_python":  return _run_python(inp.get("code",""))
+        if name=="read_file":   return _read_file(inp.get("path",""))
+        if name=="write_file":  return _write_file(inp.get("path",""),inp.get("content",""))
+        if name=="shell_safe":  return _shell_safe(inp.get("command",""))
+        return f"[ERROR] Unknown tool: {name}"
+
+    def _db():
+        c = sqlite3.connect(str(DB_PATH))
+        c.execute("CREATE TABLE IF NOT EXISTS ex(id INTEGER PRIMARY KEY,tid TEXT,human TEXT,ai TEXT,ts TEXT DEFAULT(datetime(\'now\')))")
+        c.execute("CREATE INDEX IF NOT EXISTS i ON ex(tid,id DESC)")
+        c.commit(); return c
+
+    def load_history(tid, n=6):
+        with _db() as c:
+            rows = c.execute("SELECT human,ai FROM ex WHERE tid=? ORDER BY id DESC LIMIT ?",(tid,n)).fetchall()
+        msgs = []
+        for h,a in reversed(rows):
+            msgs += [{"role":"user","content":h},{"role":"assistant","content":a}]
+        return msgs
+
+    def save(tid, human, ai):
+        with _db() as c:
+            c.execute("INSERT INTO ex(tid,human,ai) VALUES(?,?,?)",(tid,human[:2000],ai[:4000]))
+            c.execute("DELETE FROM ex WHERE tid=? AND id NOT IN(SELECT id FROM ex WHERE tid=? ORDER BY id DESC LIMIT 200)",(tid,tid))
+            c.commit()
+
+    def run_agent(text, thread_id="default", channel="webchat"):
+        key = os.environ.get("ANTHROPIC_API_KEY","")
+        if not key: return "[FEHLER] ANTHROPIC_API_KEY nicht gesetzt.\\nexport ANTHROPIC_API_KEY=sk-ant-..."
+        try: from anthropic import Anthropic
+        except ImportError: return "[FEHLER] pip install anthropic --prefer-binary"
+        client = Anthropic(api_key=key)
+        sys_p = SYSTEM
+        if channel in ("siri","voice"): sys_p += "\\nShort spoken answers. No markdown."
+        msgs = load_history(thread_id) + [{"role":"user","content":text}]
+        for _ in range(MAX_ROUNDS):
+            resp = client.messages.create(model=MODEL,max_tokens=MAX_TOKENS,system=sys_p,tools=TOOLS,messages=msgs)
+            msgs.append({"role":"assistant","content":resp.content})
+            if resp.stop_reason != "tool_use": break
+            results = []
+            for b in resp.content:
+                if b.type=="tool_use":
+                    results.append({"type":"tool_result","tool_use_id":b.id,"content":run_tool(b.name,b.input)})
+            msgs.append({"role":"user","content":results})
+        text_out = "".join(b.text for b in resp.content if hasattr(b,"text")) or "(no response)"
+        save(thread_id, text, text_out)
+        return text_out
+
+    def handle_message(payload):
+        return run_agent(payload.get("text",""),payload.get("thread_id","default"),payload.get("channel","webchat"))
+
+    if __name__ == "__main__":
+        tid = "cli-" + datetime.now().strftime("%Y%m%d")
+        print(f"Mini Agent | {MODEL} | DB: {DB_PATH}")
+        print("Ctrl+C oder exit zum Beenden\\n")
+        while True:
+            try: t = input("Du: ").strip()
+            except (KeyboardInterrupt,EOFError): print("\\nBye."); break
+            if t.lower() in ("exit","quit","bye"): print("Bye."); break
+            if not t: continue
+            print("Agent:", run_agent(t, thread_id=tid))
+            print()
+''').lstrip()
+
+with open(dest, "w", encoding="utf-8") as f:
+    f.write(code)
+print(f"  OK: {dest}")
+WRITE_AGENT
+
+ok "agent_mini.py eingebettet"
 
 # ── API Key konfigurieren ──────────────────────────────────────────────────────
 step "API Key konfigurieren"
