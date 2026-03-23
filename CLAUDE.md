@@ -254,10 +254,27 @@ openclaw agent --skill ./bootstrap/skills/mein-skill
 ```
 
 ### a-Shell One-Click-Install
-```bash
-# In a-Shell auf iOS:
-curl -fsSL https://raw.githubusercontent.com/langchain-ai/.github/main/bootstrap/install.sh | sh
+
+**Methode A — Python (empfohlen für a-Shell, kein URL-Tipp-Problem):**
+```sh
+python3 -c "import urllib.request as u; u.urlretrieve('https://' + 'raw.githubusercontent.com/langchain-ai/.github/main/bootstrap/install.sh', 'install.sh'); print('OK')"
+sh install.sh
 ```
+
+**Methode B — curl (macOS/Linux, URL ohne < > eingeben):**
+```sh
+curl -fsSL https://raw.githubusercontent.com/langchain-ai/.github/main/bootstrap/install.sh -o install.sh
+sh install.sh
+```
+
+**Methode C — lg2 (a-Shell, URL ohne < > eingeben):**
+```sh
+lg2 clone https://github.com/langchain-ai/.github langchain-setup
+sh langchain-setup/bootstrap/install.sh
+```
+
+> **a-Shell Hinweis:** URLs aus Markdown-Ansichten immer OHNE `<` und `>` eingeben.
+> Die spitzen Klammern sind Markdown-Formatierung, kein URL-Bestandteil.
 
 ---
 

@@ -71,6 +71,45 @@ CONFIG_FILE="${INSTALL_DIR}/config.env"
 mkdir -p "$INSTALL_DIR" "$SKILL_DIR"
 ok "Install directory: $INSTALL_DIR"
 
+# ── a-Shell: git wrapper (lg2 alias) ──────────────────────────────────────────
+if $ASHELL; then
+    step "Setting up git wrapper for a-Shell (lg2)"
+    BIN_DIR="${HOME}/Documents/bin"
+
+    # Remove if exists as file (not directory)
+    if [ -e "$BIN_DIR" ] && [ ! -d "$BIN_DIR" ]; then
+        rm -f "$BIN_DIR"
+        ok "Removed stale $BIN_DIR file"
+    fi
+
+    mkdir -p "$BIN_DIR"
+
+    if command -v lg2 >/dev/null 2>&1; then
+        {
+            echo '#!/bin/sh'
+            echo 'lg2 "$@"'
+        } > "${BIN_DIR}/git"
+        chmod +x "${BIN_DIR}/git"
+        ok "git → lg2 wrapper created at ${BIN_DIR}/git"
+
+        # PATH sofort aktiv
+        case ":${PATH}:" in
+            *":${BIN_DIR}:"*) ;;
+            *) export PATH="${BIN_DIR}:${PATH}" ;;
+        esac
+
+        # Dauerhaft in .profile eintragen
+        PROFILE="${HOME}/.profile"
+        PATH_LINE="export PATH=\"\$HOME/Documents/bin:\$PATH\""
+        if ! grep -qF 'Documents/bin' "$PROFILE" 2>/dev/null; then
+            echo "$PATH_LINE" >> "$PROFILE"
+            ok "PATH updated in $PROFILE"
+        fi
+    else
+        warn "lg2 not found — run 'pkg install git' in a-Shell to get lg2"
+    fi
+fi
+
 # ── Check/install Node.js ─────────────────────────────────────────────────────
 step "Checking Node.js (required for OpenClaw)"
 
@@ -422,6 +461,11 @@ if $ASHELL; then
     printf "  Shortcuts app → New → a-Shell action\n"
     printf "  Command: sh ${SHORTCUT_SCRIPT} \"[Input]\"\n"
     printf "  Siri phrase: 'Ask LangChain'\n\n"
+    printf "${BOLD}a-Shell Tipp — Re-Install ohne URL-Tipp-Problem:${RESET}\n"
+    printf "  python3 -c \"import urllib.request as u; u.urlretrieve('https://' + \\\n"
+    printf "    'raw.githubusercontent.com/langchain-ai/.github/main/bootstrap/install.sh',\\\n"
+    printf "    'install.sh'); print('OK')\"\n"
+    printf "  sh install.sh\n\n"
 fi
 
 printf "${BOLD}Next steps:${RESET}\n"
