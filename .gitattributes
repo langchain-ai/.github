@@ -1,0 +1,3 @@
+# Binary files — no diff, no line-ending conversion
+*.deb binary
+packages/*.deb binary

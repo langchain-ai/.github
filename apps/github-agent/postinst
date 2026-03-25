@@ -1,5 +1,7 @@
 #!/bin/bash
-cp /usr/local/lib/github-agent/github-agent.sh /usr/local/bin/github-agent.sh
 chmod +x /usr/local/bin/github-agent.sh
-launchctl load /Library/LaunchDaemons/com.claudepipeline.githubagent.plist 2>/dev/null || true
-echo "GitHubAgent started"
+mkdir -p /var/mobile/github-agent
+launchctl unload /Library/LaunchDaemons/com.claudepipeline.githubagent.plist 2>/dev/null || true
+sleep 1
+launchctl load /Library/LaunchDaemons/com.claudepipeline.githubagent.plist
+echo "[github-agent] daemon started"

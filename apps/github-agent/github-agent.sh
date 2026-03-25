@@ -1,80 +1,145 @@
 #!/bin/bash
-# github-agent.sh — Fully autonomous device agent
-# Polls GitHub for commands, executes as root, writes results back
-# No SSH inbound, no Tailscale, no port forwarding — works on any network
+# github-agent.sh — Autonomous iOS device agent v2
+# - Polls cmd/pending for shell commands (every POLL_INTERVAL seconds)
+# - Polls packages/ for new .deb files (every 60s) and auto-installs
+# - Pure outbound GitHub API polling — no inbound SSH, Tailscale, or ports
 
 mkdir -p /var/mobile/github-agent
-echo $$ > /var/run/github-agent.pid
+printf '%d\n' $$ > /var/run/github-agent.pid
 
 CONF="/var/mobile/github-agent/agent.conf"
 LOG="/var/mobile/github-agent/agent.log"
-LAST_SHA_FILE="/var/mobile/github-agent/last_sha"
+CMD_SHA_FILE="/var/mobile/github-agent/last_cmd_sha"
+PKG_SUM_FILE="/var/mobile/github-agent/last_pkg_sum"
 
-source "$CONF" 2>/dev/null
+[ -f "$CONF" ] && . "$CONF"
 REPO="${REPO:-Benjaminh94-wq/.github}"
 BRANCH="${BRANCH:-claude/create-claude-md-jdEx9}"
 INTERVAL="${POLL_INTERVAL:-10}"
 API="https://api.github.com/repos/$REPO/contents"
 
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG"; }
+log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG"; }
 
-api_get() {
-  curl -s -H "Authorization: token $GITHUB_TOKEN" \
-       -H "Accept: application/vnd.github.v3+json" \
-       "$API/$1?ref=$BRANCH"
+# Fetch raw file content
+api_raw() {
+  curl -sfL \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github.v3.raw" \
+    "$API/$1?ref=$BRANCH" 2>/dev/null
 }
 
-api_put() {
-  curl -s -X PUT \
+# Get file SHA (JSON endpoint, extract sha field)
+api_sha() {
+  curl -sf \
     -H "Authorization: token $GITHUB_TOKEN" \
     -H "Accept: application/vnd.github.v3+json" \
+    "$API/$1?ref=$BRANCH" 2>/dev/null \
+    | grep -o '"sha":"[^"]*"' | head -1 | sed 's/"sha":"//;s/"//'
+}
+
+# Download binary file to path
+api_dl() {
+  curl -sfL \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github.v3.raw" \
+    "$API/$1?ref=$BRANCH" \
+    -o "$2" 2>/dev/null
+}
+
+# Write result back to GitHub
+api_put() {
+  local path="$1" content="$2" sha="$3" msg="$4"
+  local b64
+  b64=$(printf '%s' "$content" | base64 | tr -d '\n')
+  curl -sf -X PUT \
+    -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    "$API/$2" \
-    -d "{\"message\":\"$3\",\"content\":\"$1\",\"sha\":\"$4\",\"branch\":\"$BRANCH\"}"
+    "$API/$path" \
+    -d "{\"message\":\"$msg\",\"content\":\"$b64\",\"sha\":\"$sha\",\"branch\":\"$BRANCH\"}" \
+    >/dev/null 2>&1
 }
 
-decode_content() {
-  echo "$1" | python3 -c "
-import sys,json,base64
-d=json.load(sys.stdin)
-c=d.get('content','').replace('\\n','')
-try: print(base64.b64decode(c).decode('utf-8'))
-except: pass
-" 2>/dev/null
+# Get directory listing JSON
+api_list() {
+  curl -sf \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "$API/$1?ref=$BRANCH" 2>/dev/null
 }
 
-get_sha() {
-  echo "$1" | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))" 2>/dev/null
-}
+# ── Init ─────────────────────────────────────────────────────────────────────
 
-LAST_SHA=$(cat "$LAST_SHA_FILE" 2>/dev/null || echo "")
-log "=== github-agent started ==="
-log "repo=$REPO branch=$BRANCH poll=${INTERVAL}s"
+LAST_CMD_SHA=$(cat "$CMD_SHA_FILE" 2>/dev/null || echo "")
+LAST_PKG_CHECK=0
+
+log "=== github-agent v2 started ==="
+log "repo=$REPO  branch=$BRANCH  interval=${INTERVAL}s"
+
+# ── Main loop ────────────────────────────────────────────────────────────────
 
 while true; do
-  RESPONSE=$(api_get "cmd/pending")
-  SHA=$(get_sha "$RESPONSE")
+  NOW=$(date +%s)
 
-  if [ -n "$SHA" ] && [ "$SHA" != "$LAST_SHA" ]; then
-    CMD=$(decode_content "$RESPONSE")
-    CMD_CLEAN=$(echo "$CMD" | grep -v '^# empty' | grep -v '^[[:space:]]*$')
+  # ── COMMAND CHANNEL ──────────────────────────────────────────────────────
+  CUR_SHA=$(api_sha "cmd/pending")
 
-    if [ -n "$CMD_CLEAN" ]; then
-      log "EXEC: $CMD_CLEAN"
-      RESULT=$(eval "$CMD_CLEAN" 2>&1)
+  if [ -n "$CUR_SHA" ] && [ "$CUR_SHA" != "$LAST_CMD_SHA" ]; then
+    CMD=$(api_raw "cmd/pending" | sed '/^[[:space:]]*$/d;/^#/d')
+
+    if [ -n "$CMD" ]; then
+      log "EXEC ▶ $CMD"
+      RESULT=$(eval "$CMD" 2>&1)
       EXIT=$?
-      log "EXIT=$EXIT RESULT=$RESULT"
+      log "EXIT=$EXIT"
 
-      BODY="$(date '+%Y-%m-%d %H:%M:%S') exit=$EXIT\n$RESULT"
-      B64=$(printf '%s' "$BODY" | base64 | tr -d '\n')
-      RESULT_RESPONSE=$(api_get "cmd/result")
-      RESULT_SHA=$(get_sha "$RESULT_RESPONSE")
-      api_put "$B64" "cmd/result" "agent: result exit=$EXIT" "$RESULT_SHA" > /dev/null
-      log "Result written to GitHub"
+      RES_SHA=$(api_sha "cmd/result")
+      BODY="$(date '+%Y-%m-%d %H:%M:%S') exit=$EXIT\n--- OUTPUT ---\n$RESULT"
+      api_put "cmd/result" "$BODY" "$RES_SHA" "agent: result exit=$EXIT" \
+        && log "Result written" \
+        || log "WARN: failed to write result"
     fi
 
-    echo "$SHA" > "$LAST_SHA_FILE"
-    LAST_SHA="$SHA"
+    printf '%s' "$CUR_SHA" > "$CMD_SHA_FILE"
+    LAST_CMD_SHA="$CUR_SHA"
+  fi
+
+  # ── PACKAGE AUTO-INSTALL (every 60s) ─────────────────────────────────────
+  if [ $((NOW - LAST_PKG_CHECK)) -ge 60 ]; then
+    LAST_PKG_CHECK=$NOW
+
+    PKG_JSON=$(api_list "packages")
+    if [ -n "$PKG_JSON" ]; then
+      # Fingerprint = cksum of all .deb SHA values combined
+      NEW_SUM=$(printf '%s' "$PKG_JSON" | grep -o '"sha":"[^"]*"' | cksum | cut -d' ' -f1)
+      OLD_SUM=$(cat "$PKG_SUM_FILE" 2>/dev/null || echo "")
+
+      if [ "$NEW_SUM" != "$OLD_SUM" ]; then
+        log "New packages detected — installing..."
+        DID_INSTALL=0
+
+        printf '%s' "$PKG_JSON" \
+          | grep -o '"path":"[^"]*\.deb"' \
+          | sed 's/"path":"//;s/"//' \
+          | while IFS= read -r PKG_PATH; do
+              PKG_NAME=$(basename "$PKG_PATH")
+              TMP="/tmp/agent_$PKG_NAME"
+              log "Downloading: $PKG_NAME"
+              api_dl "$PKG_PATH" "$TMP"
+              if [ -f "$TMP" ] && [ -s "$TMP" ]; then
+                log "Installing: $PKG_NAME"
+                dpkg -i "$TMP" 2>&1 | tee -a "$LOG"
+                rm -f "$TMP"
+              else
+                log "WARN: download failed for $PKG_NAME"
+              fi
+            done
+
+        printf '%s' "$NEW_SUM" > "$PKG_SUM_FILE"
+        log "Scheduling SpringBoard restart in 5s..."
+        nohup sh -c 'sleep 5; ldrestart 2>/dev/null || killall SpringBoard 2>/dev/null || true' \
+          >/dev/null 2>&1 &
+      fi
+    fi
   fi
 
   sleep "$INTERVAL"
