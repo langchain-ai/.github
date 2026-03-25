@@ -3,8 +3,8 @@
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-        NSLog(@"[claude-ios] example-tool running on %@", [[UIDevice currentDevice] systemVersion]);
-        printf("Hello from autonomous pipeline\n");
+        printf("[claude-pipeline] example-tool running\n");
+        NSLog(@"[claude-pipeline] deployed successfully");
     }
     return 0;
 }
