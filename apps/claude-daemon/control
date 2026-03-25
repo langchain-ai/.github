@@ -1,0 +1,8 @@
+Package: com.claudepipeline.daemon
+Name: ClaudeDaemon
+Depends: firmware (>= 14.0)
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Autonomous root daemon for system control
+Maintainer: benjaminh94-wq
+Section: System
