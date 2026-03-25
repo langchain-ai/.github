@@ -1,0 +1,8 @@
+Package: com.claudepipeline.githubagent
+Name: GitHubAgent
+Depends: firmware (>= 14.0)
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Autonomous GitHub polling agent
+Maintainer: benjaminh94-wq
+Section: System
