@@ -1,0 +1,9 @@
+Package: com.benjaminh94.exampletweak
+Name: ExampleTweak
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Deployed by autonomous pipeline
+Maintainer: benjaminh94-wq
+Author: benjaminh94-wq
+Section: Tweaks

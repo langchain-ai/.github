@@ -1,0 +1,49 @@
+name: iOS CI — Theos Compile + Package
+
+on:
+  push:
+    paths:
+      - 'apps/**'
+    branches:
+      - 'claude/**'
+      - main
+
+jobs:
+  compile:
+    name: Compile Theos Project
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Theos
+        run: |
+          export THEOS=~/theos
+          git clone --recursive https://github.com/theos/theos.git $THEOS
+          git -C $THEOS/sdks clone --depth=1 https://github.com/theos/sdks sdks || true
+
+      - name: Compile all apps
+        run: |
+          export THEOS=~/theos
+          export THEOS_MAKE_PATH=$THEOS/makefiles
+          export PATH=$THEOS/bin:$PATH
+          for app_dir in apps/*/; do
+            if [ -f "$app_dir/Makefile" ]; then
+              echo "Building $app_dir..."
+              (cd "$app_dir" && make package 2>&1)
+            fi
+          done
+
+      - name: Collect .deb packages
+        run: |
+          find . -name '*.deb' | while read deb; do
+            echo "Found: $deb"
+            mv "$deb" ./packages/ 2>/dev/null || true
+          done
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-packages
+          path: '**/*.deb'
+          retention-days: 14

@@ -1,0 +1,7 @@
+Package: com.benjaminh94.exampletool
+Name: ExampleTool
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Standalone CLI tool deployed by autonomous pipeline
+Maintainer: benjaminh94-wq
+Section: System
