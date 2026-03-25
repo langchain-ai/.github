@@ -1,11 +1,12 @@
-// ExampleTweak — deployed by autonomous pipeline
-// Replace this content with your actual tweak logic
+// ExampleTweak v1.0.1 — first live deploy via autonomous pipeline
+// Target: iPhone 14 Pro Max, iOS 26.4, arm64e
 
 #import <UIKit/UIKit.h>
 
 %hook UIViewController
 - (void)viewDidLoad {
     %orig;
-    // Your system hook here
+    NSLog(@"[claude-pipeline] deployed successfully on iOS %@",
+          [[UIDevice currentDevice] systemVersion]);
 }
 %end
