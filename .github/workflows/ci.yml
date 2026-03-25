@@ -32,6 +32,7 @@ jobs:
         run: |
           echo "Checking for empty files..."
           for f in *.md; do
+            [ -f "$f" ] || continue
             size=$(wc -c < "$f")
             if [ "$size" -lt 10 ]; then
               echo "WARNING: $f appears empty or too small"
@@ -46,7 +47,7 @@ jobs:
             echo "apps/ directory found:"
             ls -la apps/
           else
-            echo "No apps/ directory — skipping app validation"
+            echo "No apps/ directory — skipping"
           fi
 
   deploy-signal:
@@ -59,13 +60,11 @@ jobs:
 
       - name: Write deploy manifest
         run: |
-          echo "{
-            \"trigger\": \"github-actions\",
-            \"branch\": \"${{ github.ref_name }}\",
-            \"commit\": \"${{ github.sha }}\",
-            \"message\": \"${{ github.event.head_commit.message }}\",
-            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-          }" > deploy-manifest.json
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          BRANCH="${{ github.ref_name }}"
+          SHA="${{ github.sha }}"
+          printf '{"trigger":"github-actions","branch":"%s","commit":"%s","timestamp":"%s"}\n' \
+            "$BRANCH" "$SHA" "$TIMESTAMP" > deploy-manifest.json
           cat deploy-manifest.json
 
       - name: Upload deploy manifest as artifact
