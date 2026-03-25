@@ -23,33 +23,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ---- Tailscale: join the user's tailnet --------------------------------
+      # ---- Tailscale --------------------------------------------------------
       - name: Connect to Tailscale
         uses: tailscale/github-action@v2
         with:
           authkey: ${{ secrets.TS_AUTHKEY }}
           hostname: github-actions-deployer
-          args: --accept-routes
+          args: --accept-routes --shields-up=false
 
-      # ---- Verify device is reachable ----------------------------------------
-      - name: Ping iPhone
+      - name: Verify Tailscale + ping iPhone
         run: |
+          tailscale status
           echo "Pinging 100.121.183.90..."
-          ping -c 3 100.121.183.90 || true
-          # Try SSH port
-          nc -zv 100.121.183.90 22 && echo "SSH port open" || echo "SSH port not responding"
+          ping -c 3 -W 5 100.121.183.90 && echo "DEVICE REACHABLE" || echo "WARNING: ping failed, trying SSH anyway"
 
-      # ---- Install Theos build system ----------------------------------------
+      # ---- Install Theos ----------------------------------------------------
       - name: Install Theos
         run: |
           export THEOS=~/theos
-          git clone --recursive --depth=1 https://github.com/theos/theos.git $THEOS
-          git -C $THEOS/sdks clone --depth=1 https://github.com/theos/sdks .
+          git clone --recursive --depth=1 https://github.com/theos/theos.git "$THEOS"
+          # Clone SDKs into the sdks subdirectory
+          rm -rf "$THEOS/sdks"
+          git clone --depth=1 https://github.com/theos/sdks "$THEOS/sdks"
           echo "THEOS=$THEOS" >> $GITHUB_ENV
           echo "THEOS_MAKE_PATH=$THEOS/makefiles" >> $GITHUB_ENV
           echo "$THEOS/bin" >> $GITHUB_PATH
+          ls "$THEOS/sdks" | grep iPhone
 
-      # ---- Compile all apps or a specific one --------------------------------
+      # ---- Compile ----------------------------------------------------------
       - name: Compile Theos packages
         run: |
           TARGET_APP="${{ github.event.inputs.app_name }}"
@@ -58,9 +59,16 @@ jobs:
 
           compile_app() {
             local app_dir="$1"
-            local app_name=$(basename "$app_dir")
+            local app_name
+            app_name=$(basename "$app_dir")
             echo "==> Compiling $app_name..."
-            (cd "$app_dir" && make package THEOS_PACKAGE_DIR="$PACKAGES_DIR" ARCHS=arm64e TARGET=iphone:clang:16.5:15.0 2>&1)
+            cd "$app_dir"
+            make package \
+              THEOS_PACKAGE_DIR="$PACKAGES_DIR" \
+              ARCHS=arm64e \
+              TARGET="iphone:clang:16.5:15.0" \
+              2>&1 || { echo "COMPILE FAILED: $app_name"; return 1; }
+            cd "$GITHUB_WORKSPACE"
             echo "==> Done: $app_name"
           }
 
@@ -68,48 +76,49 @@ jobs:
             compile_app "apps/$TARGET_APP"
           else
             for app_dir in apps/*/; do
-              [ -f "$app_dir/Makefile" ] && compile_app "$app_dir"
+              [ -f "${app_dir}Makefile" ] && compile_app "$app_dir"
             done
           fi
 
           echo "=== Built packages ==="
-          find "$PACKAGES_DIR" -name '*.deb' | while read f; do
-            echo "  $f ($(du -h $f | cut -f1))"
-          done
+          find "$PACKAGES_DIR" -name '*.deb' -exec ls -lh {} \;
 
-      # ---- Deploy all .deb files to iPhone via SSH ---------------------------
-      - name: Deploy to iPhone
+      # ---- Install sshpass --------------------------------------------------
+      - name: Install sshpass
+        run: |
+          brew install hudochenkov/sshpass/sshpass
+          which sshpass && sshpass -V
+
+      # ---- Deploy -----------------------------------------------------------
+      - name: Deploy .deb to iPhone via SSH
         env:
           IOS_SSH_PASS: ${{ secrets.IOS_SSH_PASS }}
         run: |
-          brew install hudochenkov/sshpass/sshpass 2>/dev/null || brew install sshpass 2>/dev/null || true
-
           DEVICE_IP="100.121.183.90"
-          DEVICE_USER="root"
-          DEVICE_PORT="22"
-          SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=15 -p $DEVICE_PORT"
+          SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=20 -p 22"
 
-          deploy_deb() {
-            local deb="$1"
-            local name=$(basename "$deb")
-            echo "==> Deploying $name..."
-            sshpass -p "$IOS_SSH_PASS" scp $SSH_OPTS "$deb" "$DEVICE_USER@$DEVICE_IP:/tmp/$name"
-            sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS "$DEVICE_USER@$DEVICE_IP" \
-              "dpkg -i /tmp/$name && rm /tmp/$name && echo 'Installed: $name'"
-            echo "==> Deployed: $name"
-          }
+          # Test SSH first
+          echo "Testing SSH connection..."
+          sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS root@$DEVICE_IP "uname -a" \
+            && echo "SSH OK" || { echo "SSH FAILED"; exit 1; }
 
-          find packages/ -name '*.deb' | while read deb; do
-            deploy_deb "$deb"
+          # Deploy each .deb
+          for deb in packages/*.deb; do
+            [ -f "$deb" ] || continue
+            name=$(basename "$deb")
+            echo "==> Deploying $name"
+            sshpass -p "$IOS_SSH_PASS" scp $SSH_OPTS "$deb" root@$DEVICE_IP:/tmp/
+            sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS root@$DEVICE_IP \
+              "dpkg -i /tmp/$name; rm -f /tmp/$name; echo 'Installed: $name'"
           done
 
-          # Restart SpringBoard to activate tweaks
+          # Restart SpringBoard
           echo "==> Restarting SpringBoard..."
-          sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS "$DEVICE_USER@$DEVICE_IP" \
-            "(ldrestart 2>/dev/null || killall SpringBoard 2>/dev/null || true) &"
-          echo "==> Deploy complete"
+          sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS root@$DEVICE_IP \
+            "nohup sh -c 'sleep 1; ldrestart 2>/dev/null || killall SpringBoard 2>/dev/null' &"
+          echo "DEPLOY COMPLETE"
 
-      # ---- Upload packages as artifacts for inspection -----------------------
+      # ---- Artifacts --------------------------------------------------------
       - name: Upload .deb artifacts
         uses: actions/upload-artifact@v4
         if: always()
