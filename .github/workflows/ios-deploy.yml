@@ -23,7 +23,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ---- Tailscale --------------------------------------------------------
       - name: Connect to Tailscale
         uses: tailscale/github-action@v2
         with:
@@ -31,95 +30,94 @@ jobs:
           hostname: github-actions-deployer
           args: --accept-routes --shields-up=false
 
-      - name: Verify Tailscale + ping iPhone
+      - name: Verify device reachable
         run: |
           tailscale status
-          echo "Pinging 100.121.183.90..."
-          ping -c 3 -W 5 100.121.183.90 && echo "DEVICE REACHABLE" || echo "WARNING: ping failed, trying SSH anyway"
+          ping -c 2 -W 5 100.121.183.90 && echo "DEVICE OK" || echo "ping failed"
 
-      # ---- Install Theos ----------------------------------------------------
+      - name: Install dependencies
+        run: |
+          brew install ldid dpkg 2>/dev/null || true
+          which ldid && ldid 2>&1 | head -1 || true
+          which dpkg && dpkg --version | head -1
+          perl --version | head -1
+
       - name: Install Theos
         run: |
           export THEOS=~/theos
           git clone --recursive --depth=1 https://github.com/theos/theos.git "$THEOS"
-          # Clone SDKs into the sdks subdirectory
           rm -rf "$THEOS/sdks"
           git clone --depth=1 https://github.com/theos/sdks "$THEOS/sdks"
+          ls "$THEOS/sdks" | grep iPhone
           echo "THEOS=$THEOS" >> $GITHUB_ENV
           echo "THEOS_MAKE_PATH=$THEOS/makefiles" >> $GITHUB_ENV
           echo "$THEOS/bin" >> $GITHUB_PATH
-          ls "$THEOS/sdks" | grep iPhone
+          echo "$THEOS/vendor/logos/bin" >> $GITHUB_PATH
 
-      # ---- Compile ----------------------------------------------------------
-      - name: Compile Theos packages
+      - name: Compile packages
         run: |
-          TARGET_APP="${{ github.event.inputs.app_name }}"
           PACKAGES_DIR="$GITHUB_WORKSPACE/packages"
           mkdir -p "$PACKAGES_DIR"
+          TARGET_APP="${{ github.event.inputs.app_name }}"
 
           compile_app() {
             local app_dir="$1"
-            local app_name
-            app_name=$(basename "$app_dir")
-            echo "==> Compiling $app_name..."
-            cd "$app_dir"
+            local app_name=$(basename "$app_dir")
+            echo "====== Compiling: $app_name ======"
+            cd "$GITHUB_WORKSPACE/$app_dir"
             make package \
               THEOS_PACKAGE_DIR="$PACKAGES_DIR" \
-              ARCHS=arm64e \
-              TARGET="iphone:clang:16.5:15.0" \
-              2>&1 || { echo "COMPILE FAILED: $app_name"; return 1; }
+              ARCHS="arm64 arm64e" \
+              TARGET="iphone:clang:16.5:14.0" \
+              STRIP=0 \
+              DEBUG=1 \
+              2>&1
+            local exit_code=$?
             cd "$GITHUB_WORKSPACE"
-            echo "==> Done: $app_name"
+            [ $exit_code -eq 0 ] && echo "OK: $app_name" || echo "FAILED: $app_name (exit $exit_code)"
+            return $exit_code
           }
 
           if [ -n "$TARGET_APP" ] && [ -d "apps/$TARGET_APP" ]; then
             compile_app "apps/$TARGET_APP"
           else
+            FAILED=0
             for app_dir in apps/*/; do
-              [ -f "${app_dir}Makefile" ] && compile_app "$app_dir"
+              [ -f "${app_dir}Makefile" ] || continue
+              compile_app "$app_dir" || FAILED=$((FAILED+1))
             done
+            [ $FAILED -eq 0 ] || { echo "$FAILED app(s) failed to compile"; exit 1; }
           fi
 
-          echo "=== Built packages ==="
+          echo "=== Packages ==="
           find "$PACKAGES_DIR" -name '*.deb' -exec ls -lh {} \;
 
-      # ---- Install sshpass --------------------------------------------------
       - name: Install sshpass
-        run: |
-          brew install hudochenkov/sshpass/sshpass
-          which sshpass && sshpass -V
+        run: brew install hudochenkov/sshpass/sshpass
 
-      # ---- Deploy -----------------------------------------------------------
-      - name: Deploy .deb to iPhone via SSH
+      - name: Deploy to iPhone
         env:
           IOS_SSH_PASS: ${{ secrets.IOS_SSH_PASS }}
         run: |
           DEVICE_IP="100.121.183.90"
-          SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=20 -p 22"
+          SSH="sshpass -p $IOS_SSH_PASS ssh -o StrictHostKeyChecking=no -o ConnectTimeout=20"
+          SCP="sshpass -p $IOS_SSH_PASS scp -o StrictHostKeyChecking=no -o ConnectTimeout=20"
 
-          # Test SSH first
-          echo "Testing SSH connection..."
-          sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS root@$DEVICE_IP "uname -a" \
-            && echo "SSH OK" || { echo "SSH FAILED"; exit 1; }
+          echo "Testing SSH..."
+          $SSH root@$DEVICE_IP "uname -a" && echo "SSH OK"
 
-          # Deploy each .deb
           for deb in packages/*.deb; do
-            [ -f "$deb" ] || continue
+            [ -f "$deb" ] || { echo "No .deb found"; exit 1; }
             name=$(basename "$deb")
-            echo "==> Deploying $name"
-            sshpass -p "$IOS_SSH_PASS" scp $SSH_OPTS "$deb" root@$DEVICE_IP:/tmp/
-            sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS root@$DEVICE_IP \
-              "dpkg -i /tmp/$name; rm -f /tmp/$name; echo 'Installed: $name'"
+            echo "Deploying $name..."
+            $SCP "$deb" root@$DEVICE_IP:/tmp/
+            $SSH root@$DEVICE_IP "dpkg -i /tmp/$name; rm -f /tmp/$name"
           done
 
-          # Restart SpringBoard
-          echo "==> Restarting SpringBoard..."
-          sshpass -p "$IOS_SSH_PASS" ssh $SSH_OPTS root@$DEVICE_IP \
-            "nohup sh -c 'sleep 1; ldrestart 2>/dev/null || killall SpringBoard 2>/dev/null' &"
+          $SSH root@$DEVICE_IP "nohup sh -c 'sleep 1; ldrestart 2>/dev/null || killall SpringBoard' >/dev/null 2>&1 &" || true
           echo "DEPLOY COMPLETE"
 
-      # ---- Artifacts --------------------------------------------------------
-      - name: Upload .deb artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
