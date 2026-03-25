@@ -3,6 +3,6 @@ Name: SystemMonitor
 Depends: mobilesubstrate, firmware (>= 14.0)
 Version: 1.0.0
 Architecture: iphoneos-arm64
-Description: Live CPU/RAM/Battery HUD overlay on SpringBoard
+Description: Live CPU/RAM/Battery HUD on SpringBoard
 Maintainer: benjaminh94-wq
 Section: Tweaks

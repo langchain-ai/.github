@@ -8,6 +8,5 @@ TWEAK_NAME = SystemMonitor
 SystemMonitor_FILES = Tweak.x
 SystemMonitor_CFLAGS = -fobjc-arc
 SystemMonitor_FRAMEWORKS = UIKit Foundation
-SystemMonitor_PRIVATE_FRAMEWORKS = GraphicsServices
 
 include $(THEOS_MAKE_PATH)/tweak.mk
