@@ -1,5 +1,5 @@
-Build started: Wed Mar 25 21:56:24 UTC 2026
-Commit: ca55666f5f958929acab7a620522c9bf1b10d2f9
+Build started: Wed Mar 25 22:01:26 UTC 2026
+Commit: af4268274242f6a562717b333819e9a6c354602b
 
 
 === claude-daemon ==
@@ -98,15 +98,14 @@ ld: warning: -multiply_defined is obsolete
 [0;34m==> [1;39mMerging tweak SystemMonitor…[m
 [0;34m==> [1;39mSigning SystemMonitor…[m
 [1;31m> [1;3;39mMaking stage for tweak SystemMonitor…[m
-[0;31m==> [1;31mError:[m You are missing a filter property list. Make sure it’s named "SystemMonitor.plist" or "Filter.plist". Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader.
-make[1]: *** [internal-tweak-stage_] Error 1
-make: *** [SystemMonitor.stage.tweak.variables] Error 2
-RESULT: FAIL (exit 2)
+dm.pl: building package `com.claudepipeline.systemmonitor:iphoneos-arm64' in `/Users/runner/work/.github/.github/packages/com.claudepipeline.systemmonitor_1.0.0_iphoneos-arm64.deb'
+RESULT: OK
 
 === Built packages ==
--rw-r--r--  1 runner  staff   4.5K Mar 25 21:56 packages/com.claudepipeline.githubagent_1.0.0_iphoneos-arm64.deb
--rw-r--r--  1 runner  staff   3.1K Mar 25 21:56 packages/com.benjaminh94.exampletweak_1.0.0_iphoneos-arm64.deb
--rw-r--r--  1 runner  staff   6.6K Mar 25 21:56 packages/com.claudepipeline.daemon_1.0.0_iphoneos-arm64.deb
--rw-r--r--  1 runner  staff   2.5K Mar 25 21:56 packages/com.benjaminh94.exampletool_1.0.0_iphoneos-arm64.deb
+-rw-r--r--  1 runner  staff   4.5K Mar 25 22:02 packages/com.claudepipeline.githubagent_1.0.0_iphoneos-arm64.deb
+-rw-r--r--  1 runner  staff   3.1K Mar 25 22:01 packages/com.benjaminh94.exampletweak_1.0.0_iphoneos-arm64.deb
+-rw-r--r--  1 runner  staff   6.6K Mar 25 22:01 packages/com.claudepipeline.daemon_1.0.0_iphoneos-arm64.deb
+-rw-r--r--  1 runner  staff   2.5K Mar 25 22:01 packages/com.benjaminh94.exampletool_1.0.0_iphoneos-arm64.deb
+-rw-r--r--  1 runner  staff   6.1K Mar 25 22:02 packages/com.claudepipeline.systemmonitor_1.0.0_iphoneos-arm64.deb
 
-Build finished: Wed Mar 25 21:56:50 UTC 2026 — exit 1
+Build finished: Wed Mar 25 22:02:10 UTC 2026 — exit 0
