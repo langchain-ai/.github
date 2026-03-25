@@ -10,52 +10,74 @@ on:
   workflow_dispatch:
     inputs:
       app_name:
-        description: 'App to deploy (leave empty for all)'
+        description: 'App name to deploy (empty = all)'
         required: false
+
+env:
+  DEVICE_IP: "100.121.183.90"
+  DEVICE_USER: "root"
+  DEVICE_PORT: "22"
+  THEOS_DIR: "/Users/runner/theos"
 
 jobs:
   build-and-deploy:
-    name: Compile + Deploy to iPhone
+    name: Compile + Deploy to iPhone 14 Pro Max
     runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
-      - name: Checkout
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Connect to Tailscale
+      # -----------------------------------------------------------------------
+      - name: Connect Tailscale
         uses: tailscale/github-action@v2
         with:
           authkey: ${{ secrets.TS_AUTHKEY }}
           hostname: github-actions-deployer
           args: --accept-routes --shields-up=false
 
+      # -----------------------------------------------------------------------
       - name: Verify device reachable
         run: |
+          echo "=== Tailscale status ==="
           tailscale status
-          ping -c 2 -W 5 100.121.183.90 && echo "DEVICE OK" || echo "ping failed"
+          echo "=== Ping device ==="
+          ping -c 3 -W 5 $DEVICE_IP && echo "DEVICE ONLINE" || echo "ping failed (may still work)"
 
-      - name: Install dependencies
+      # -----------------------------------------------------------------------
+      - name: Install system dependencies
         run: |
-          brew install ldid dpkg 2>/dev/null || true
-          which ldid && ldid 2>&1 | head -1 || true
-          which dpkg && dpkg --version | head -1
+          echo "=== Installing brew packages ==="
+          brew install ldid dpkg hudochenkov/sshpass/sshpass 2>&1 | tail -5
+          echo "=== Verifying tools ==="
+          ldid 2>&1 | head -1 || true
+          dpkg --version | head -1
+          sshpass -V
           perl --version | head -1
+          clang --version | head -1
 
-      - name: Install Theos
+      # -----------------------------------------------------------------------
+      - name: Install Theos + iOS 16.5 SDK
         run: |
-          export THEOS=~/theos
-          git clone --recursive --depth=1 https://github.com/theos/theos.git "$THEOS"
-          rm -rf "$THEOS/sdks"
-          git clone --depth=1 https://github.com/theos/sdks "$THEOS/sdks"
-          ls "$THEOS/sdks" | grep iPhone
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          echo "THEOS_MAKE_PATH=$THEOS/makefiles" >> $GITHUB_ENV
-          echo "$THEOS/bin" >> $GITHUB_PATH
-          echo "$THEOS/vendor/logos/bin" >> $GITHUB_PATH
+          echo "=== Cloning Theos ==="
+          git clone --recursive --depth=1 https://github.com/theos/theos.git "$THEOS_DIR" 2>&1 | tail -5
+          echo "=== Cloning iOS SDKs ==="
+          rm -rf "$THEOS_DIR/sdks"
+          git clone --depth=1 https://github.com/theos/sdks "$THEOS_DIR/sdks" 2>&1 | tail -5
+          echo "=== Available SDKs ==="
+          ls "$THEOS_DIR/sdks" | grep -i iphone
+          echo "=== Verifying iOS 16.5 SDK ==="
+          ls "$THEOS_DIR/sdks/iPhoneOS16.5.sdk" | head -5
 
-      - name: Compile packages
+      # -----------------------------------------------------------------------
+      - name: Compile all Theos apps
+        env:
+          THEOS: "/Users/runner/theos"
+          THEOS_MAKE_PATH: "/Users/runner/theos/makefiles"
         run: |
+          export PATH="$THEOS/bin:$THEOS/vendor/logos/bin:$PATH"
           PACKAGES_DIR="$GITHUB_WORKSPACE/packages"
           mkdir -p "$PACKAGES_DIR"
           TARGET_APP="${{ github.event.inputs.app_name }}"
@@ -63,64 +85,86 @@ jobs:
           compile_app() {
             local app_dir="$1"
             local app_name=$(basename "$app_dir")
-            echo "====== Compiling: $app_name ======"
+            echo ""
+            echo "====== COMPILING: $app_name ======"
             cd "$GITHUB_WORKSPACE/$app_dir"
+
+            # Hardcoded safe compile flags for iPhone 14 Pro Max
             make package \
+              THEOS="$THEOS" \
+              THEOS_MAKE_PATH="$THEOS/makefiles" \
               THEOS_PACKAGE_DIR="$PACKAGES_DIR" \
               ARCHS="arm64 arm64e" \
               TARGET="iphone:clang:16.5:14.0" \
+              SYSROOT="$THEOS/sdks/iPhoneOS16.5.sdk" \
+              FINALPACKAGE=1 \
               STRIP=0 \
-              DEBUG=1 \
               2>&1
-            local exit_code=$?
+
+            local rc=$?
             cd "$GITHUB_WORKSPACE"
-            [ $exit_code -eq 0 ] && echo "OK: $app_name" || echo "FAILED: $app_name (exit $exit_code)"
-            return $exit_code
+            if [ $rc -eq 0 ]; then
+              echo "SUCCESS: $app_name"
+            else
+              echo "FAILED: $app_name (exit code $rc)"
+              return $rc
+            fi
           }
 
+          FAIL=0
           if [ -n "$TARGET_APP" ] && [ -d "apps/$TARGET_APP" ]; then
-            compile_app "apps/$TARGET_APP"
+            compile_app "apps/$TARGET_APP" || FAIL=1
           else
-            FAILED=0
             for app_dir in apps/*/; do
-              [ -f "${app_dir}Makefile" ] || continue
-              compile_app "$app_dir" || FAILED=$((FAILED+1))
+              [ -f "${app_dir}Makefile" ] && { compile_app "$app_dir" || FAIL=1; }
             done
-            [ $FAILED -eq 0 ] || { echo "$FAILED app(s) failed to compile"; exit 1; }
           fi
 
-          echo "=== Packages ==="
+          echo ""
+          echo "====== BUILT PACKAGES ======"
           find "$PACKAGES_DIR" -name '*.deb' -exec ls -lh {} \;
+          [ $FAIL -eq 0 ] || exit 1
 
-      - name: Install sshpass
-        run: brew install hudochenkov/sshpass/sshpass
-
-      - name: Deploy to iPhone
+      # -----------------------------------------------------------------------
+      - name: Test SSH to iPhone
         env:
           IOS_SSH_PASS: ${{ secrets.IOS_SSH_PASS }}
         run: |
-          DEVICE_IP="100.121.183.90"
-          SSH="sshpass -p $IOS_SSH_PASS ssh -o StrictHostKeyChecking=no -o ConnectTimeout=20"
-          SCP="sshpass -p $IOS_SSH_PASS scp -o StrictHostKeyChecking=no -o ConnectTimeout=20"
+          echo "=== Testing SSH connection ==="
+          sshpass -p "$IOS_SSH_PASS" ssh \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=20 \
+            -p $DEVICE_PORT \
+            $DEVICE_USER@$DEVICE_IP \
+            "uname -a && echo SSH_OK"
 
-          echo "Testing SSH..."
-          $SSH root@$DEVICE_IP "uname -a" && echo "SSH OK"
+      # -----------------------------------------------------------------------
+      - name: Deploy .deb packages to iPhone
+        env:
+          IOS_SSH_PASS: ${{ secrets.IOS_SSH_PASS }}
+        run: |
+          SSH="sshpass -p $IOS_SSH_PASS ssh -o StrictHostKeyChecking=no -o ConnectTimeout=20 -p $DEVICE_PORT"
+          SCP="sshpass -p $IOS_SSH_PASS scp -o StrictHostKeyChecking=no -o ConnectTimeout=20 -P $DEVICE_PORT"
 
           for deb in packages/*.deb; do
-            [ -f "$deb" ] || { echo "No .deb found"; exit 1; }
+            [ -f "$deb" ] || { echo "No .deb found in packages/"; exit 1; }
             name=$(basename "$deb")
-            echo "Deploying $name..."
-            $SCP "$deb" root@$DEVICE_IP:/tmp/
-            $SSH root@$DEVICE_IP "dpkg -i /tmp/$name; rm -f /tmp/$name"
+            echo "=== Deploying: $name ==="
+            $SCP "$deb" $DEVICE_USER@$DEVICE_IP:/tmp/
+            $SSH $DEVICE_USER@$DEVICE_IP "dpkg -i /tmp/$name && rm -f /tmp/$name && echo 'INSTALLED: $name'"
           done
 
-          $SSH root@$DEVICE_IP "nohup sh -c 'sleep 1; ldrestart 2>/dev/null || killall SpringBoard' >/dev/null 2>&1 &" || true
-          echo "DEPLOY COMPLETE"
+          echo "=== Restarting SpringBoard ==="
+          $SSH $DEVICE_USER@$DEVICE_IP \
+            "nohup sh -c 'sleep 2; ldrestart 2>/dev/null || killall SpringBoard 2>/dev/null' >/dev/null 2>&1 &" || true
 
-      - name: Upload artifacts
+          echo "====== DEPLOY COMPLETE ======"
+
+      # -----------------------------------------------------------------------
+      - name: Upload .deb artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ios-packages-${{ github.run_number }}
+          name: ios-packages-run${{ github.run_number }}
           path: packages/*.deb
           retention-days: 30

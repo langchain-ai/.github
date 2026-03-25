@@ -1,8 +1,15 @@
-// ExampleTweak v1.0.3
+// ExampleTweak — iPhone 14 Pro Max, iOS 26.4, arm64e
+// Hooks UIViewController.viewDidLoad system-wide
+
 #import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+
 %hook UIViewController
+
 - (void)viewDidLoad {
     %orig;
-    NSLog(@"[claude-pipeline] v1.0.3");
+    NSLog(@"[claude-pipeline] ExampleTweak active on %@",
+          [UIDevice currentDevice].systemVersion);
 }
+
 %end
