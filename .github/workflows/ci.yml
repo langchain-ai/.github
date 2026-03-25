@@ -1,0 +1,76 @@
+name: CI — Validate & Deploy Signal
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Validate Markdown & Structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required community health files
+        run: |
+          echo "Checking required files..."
+          for f in CODE_OF_CONDUCT.md CONTRIBUTING.md SECURITY.md CLAUDE.md; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              exit 1
+            else
+              echo "OK: $f"
+            fi
+          done
+
+      - name: Lint Markdown (basic)
+        run: |
+          echo "Checking for empty files..."
+          for f in *.md; do
+            size=$(wc -c < "$f")
+            if [ "$size" -lt 10 ]; then
+              echo "WARNING: $f appears empty or too small"
+            else
+              echo "OK: $f ($size bytes)"
+            fi
+          done
+
+      - name: Validate apps/ structure (if present)
+        run: |
+          if [ -d apps ]; then
+            echo "apps/ directory found:"
+            ls -la apps/
+          else
+            echo "No apps/ directory — skipping app validation"
+          fi
+
+  deploy-signal:
+    name: Emit Deploy Signal
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/claude/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write deploy manifest
+        run: |
+          echo "{
+            \"trigger\": \"github-actions\",
+            \"branch\": \"${{ github.ref_name }}\",
+            \"commit\": \"${{ github.sha }}\",
+            \"message\": \"${{ github.event.head_commit.message }}\",
+            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+          }" > deploy-manifest.json
+          cat deploy-manifest.json
+
+      - name: Upload deploy manifest as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-manifest
+          path: deploy-manifest.json
+          retention-days: 7
