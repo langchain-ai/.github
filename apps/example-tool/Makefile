@@ -8,6 +8,5 @@ TOOL_NAME = example-tool
 example-tool_FILES = main.m
 example-tool_CFLAGS = -fobjc-arc
 example-tool_FRAMEWORKS = Foundation
-example-tool_CODESIGN_FLAGS = -Sentitlements.xml
 
 include $(THEOS_MAKE_PATH)/tool.mk

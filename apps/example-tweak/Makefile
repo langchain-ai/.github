@@ -8,6 +8,6 @@ TWEAK_NAME = ExampleTweak
 ExampleTweak_FILES = Tweak.x
 ExampleTweak_CFLAGS = -fobjc-arc
 ExampleTweak_FRAMEWORKS = UIKit Foundation
-ExampleTweak_LIBRARIES = substrate
+# substrate linked automatically by tweak.mk — do not declare explicitly
 
 include $(THEOS_MAKE_PATH)/tweak.mk

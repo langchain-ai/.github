@@ -8,5 +8,6 @@ TWEAK_NAME = SystemMonitor
 SystemMonitor_FILES = Tweak.x
 SystemMonitor_CFLAGS = -fobjc-arc
 SystemMonitor_FRAMEWORKS = UIKit Foundation
+# substrate linked automatically by tweak.mk
 
 include $(THEOS_MAKE_PATH)/tweak.mk

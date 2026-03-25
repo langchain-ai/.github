@@ -1,3 +1,4 @@
+# Hardcoded: iPhone 14 Pro Max, iOS 26.x, arm64e
 THEOS_MAKE_PATH ?= $(THEOS)/makefiles
 ARCHS = arm64 arm64e
 TARGET = iphone:clang:16.5:14.0

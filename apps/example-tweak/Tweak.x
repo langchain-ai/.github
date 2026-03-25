@@ -8,7 +8,7 @@
 
 - (void)viewDidLoad {
     %orig;
-    NSLog(@"[claude-pipeline] ExampleTweak active on %@",
+    NSLog(@"[claude-pipeline] ExampleTweak: iOS %@",
           [UIDevice currentDevice].systemVersion);
 }
 
