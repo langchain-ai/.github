@@ -15,6 +15,8 @@ Examples of behavior that contributes to a positive environment for our communit
 * Giving and gracefully accepting constructive feedback
 * Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
 * Focusing on what is best not just for us as individuals, but for the overall community
+* Proactively offering help to new contributors
+* Keeping discussions focused on ideas and solutions rather than personal attributes
 
 Examples of unacceptable behavior include:
 
@@ -24,6 +26,7 @@ Examples of unacceptable behavior include:
 * Publishing others' private information, such as a physical or email address, without their explicit permission
 * Submitting AI-generated content (issues, pull requests, comments, reviews, or documentation) that has not been meaningfully reviewed, verified, or understood by the contributor
 * Using issues, pull requests, discussions, or other community spaces for self-promotion, spam, or advertising unrelated projects and services
+* Deliberately undermining or dismissing others' contributions
 * Other conduct which could reasonably be considered inappropriate in a professional setting
 
 ## Enforcement Responsibilities
