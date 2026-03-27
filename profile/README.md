@@ -3,28 +3,28 @@
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-light.svg#gh-dark-mode-only">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg#gh-light-mode-only">
-      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="80%">
+      <img alt="LangChain Logo" src="https://raw.githubusercontent.com/langchain-ai/.github/main/profile/logo-dark.svg" width="50%">
     </picture>
   </a>
+</div>
+
+<div align="center">
+  <h3>The agent engineering platform.</h3>
 </div>
 
 <div>
   <p align="center">
     <a
-    href="https://twitter.com/langchainai"><img src="https://img.shields.io/badge/X/Twitter-000000?style=for-the-badge&logo=x&logoColor=white&logoSize=auto" /></a>
+    href="https://x.com/langchain"><img src="https://img.shields.io/badge/X/Twitter-000000?style=for-the-badge&logo=x&logoColor=white&logoSize=auto" /></a>
     <a href="https://www.linkedin.com/company/langchain/"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto" /></a>
     <a href="https://www.youtube.com/@LangChain"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white&logoSize=auto" /></a>
   </p>
 </div>
 
-<h3 align="center">
-  <p>Build context-aware reasoning applications with LangChain’s flexible abstractions and AI-first toolkits.</p>
-</h3>
-
 Core OSS libraries:
 - [`LangChain`](https://github.com/langchain-ai/langchain) and [`LangChain.js`](https://github.com/langchain-ai/langchainjs) – reusable components and integrations for building LLM applications
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) – build LLM agents as graphs
-- [`DeepAgents`](https://github.com/langchain-ai/deepagents) and [`DeepAgents.js`](https://github.com/langchain-ai/deepagentsjs) – agents that can plan, use subagents, and leverage file systems for complex tasks
+- [`Deep Agents`](https://github.com/langchain-ai/deepagents) and [`Deep Agents.js`](https://github.com/langchain-ai/deepagentsjs) – agents that can plan, use subagents, and leverage file systems for complex tasks
 
 Commercial Platform:
 - [`LangSmith`](https://docs.langchain.com/langsmith/home) – platform for building and monitoring production-grade LLM applications
