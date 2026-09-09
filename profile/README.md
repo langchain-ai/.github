@@ -33,8 +33,8 @@ Commercial Platform:
 
 OSS extensions and apps:
 
-- [`Deep Agents Code`](https://docs.langchain.com/oss/python/deepagents/code/overview) - `dcode` is an open source coding agent in your terminal, similar to Claude Code or Cursor, powered by any LLM
-- [`Open SWE`](https://github.com/langchain-ai/open-swe) – open source asynchronous coding agent
+- [`Deep Agents Code`](https://docs.langchain.com/oss/python/deepagents/code/overview) - `dcode` is an open-source coding agent in your terminal, similar to Claude Code or Cursor, powered by any LLM
+- [`Open SWE`](https://github.com/langchain-ai/open-swe) – open-source asynchronous coding agent
 - [`MCP Adapters`](https://github.com/langchain-ai/langchain-mcp-adapters) – make MCP tools compatible with LangChain and LangGraph
 - [`Agent Protocol`](https://github.com/langchain-ai/agent-protocol) – our attempt at codifying the framework-agnostic APIs that are needed to serve LLM agents in production
 - [`OpenWiki`](https://github.com/langchain-ai/openwiki) - CLI agent for codebase and personal memory wiki generation & maintenance.
