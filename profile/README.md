@@ -23,9 +23,9 @@
 
 Core OSS libraries:
 
+- [`Deep Agents`](https://github.com/langchain-ai/deepagents) and [`Deep Agents.js`](https://github.com/langchain-ai/deepagentsjs) – agents that can plan, use subagents, and leverage file systems for complex tasks
 - [`LangChain`](https://github.com/langchain-ai/langchain) and [`LangChain.js`](https://github.com/langchain-ai/langchainjs) – reusable components and integrations for building LLM applications
 - [`LangGraph`](https://github.com/langchain-ai/langgraph) and [`LangGraph.js`](https://github.com/langchain-ai/langgraphjs) – build LLM agents as graphs
-- [`Deep Agents`](https://github.com/langchain-ai/deepagents) and [`Deep Agents.js`](https://github.com/langchain-ai/deepagentsjs) – agents that can plan, use subagents, and leverage file systems for complex tasks
 
 Commercial Platform:
 
